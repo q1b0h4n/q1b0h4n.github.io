@@ -1,0 +1,268 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>中兴机顶盒ZXV10 B860AV2.1T 2022款刷armbian系统 | q1b0h4n&#39;s Blog</title>
+  <meta name="author" content="q1b0h4n">
+  
+  <meta name="description" content="​	最近需要一台轻量化的小服务器来跑几个Python脚本，起初打算再买一台树莓派4b的，但是看了一圈这个溢价直接给我劝退，后来我想到了运营商送的小盒子 所以就有了接下来的故事。"> 
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="中兴机顶盒ZXV10 B860AV2.1T 2022款刷armbian系统"/>
+  <meta property="og:site_name" content="q1b0h4n&#39;s Blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">q1b0h4n&#39;s Blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class="fa fa-archive"></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class="fa fa-folder"></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class="fa fa-tags"></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class="fa fa-user"></i>About
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> 中兴机顶盒ZXV10 B860AV2.1T 2022款刷armbian系统</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  		
+
+	  <p>​	最近需要一台轻量化的小服务器来跑几个Python脚本，起初打算再买一台树莓派4b的，但是看了一圈这个溢价直接给我劝退，后来我想到了运营商送的小盒子 所以就有了接下来的故事。	</p>
+<span id="more"></span>
+
+<p>​	中兴运营商盒子刷第三方系统什么的也不是什么新鲜事了，早几年再恩山就有很多大神出了TTL刷机和短接线刷的教程，但是经过了一番尝试，发现对于2022年的新盒子这些方法基本上都失效了，无奈只能自己摸索。</p>
+<p>​	思路是这样的 首先 先刷入一个 有ROOT权限的第三方安卓，这个我已经找好了可用于S905L处理器的刷机包了，但是这个镜像刷入以后不能使用原装遥控了，因为input&#x2F;event 对不上。所以说刷之前先准备好一个USB键盘。 刷入有ROOT权限的安卓以后，把armbian刷入一张SD卡，并且调整好外置启动文件，这里有一个很大的坑我一会会说。最后将系统写入原厂的e-nand 。 没错 2022年的中兴盒子把emmc换成了e-nand 这也是很多人发现写入时找不到emmc的原因了，这个问题我摸索了一阵已经解决了，这边我会说下思路，并且把已经修改好的文件上传到包里，供小白们 直接用。</p>
+<h3 id="1-第一步"><a href="#1-第一步" class="headerlink" title="1.第一步"></a>1.第一步</h3><p>首先刷入第三方安卓，第一个问题就是与老版本盒子不同的是，短接的电阻有了变化。不是c125而是 c119。</p>
+<p><img src="https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406062217179.png"> </p>
+<p>​	步骤是用双公USB连接到电脑后（靠近以太网接口的那个USB)短接C119的两端然后通电，刷机软件会检测到设备，然后导入镜像勾选擦除flash，和刷鞋boot loader，点开始就可以，软件和镜像以及所有会用到的东西，我都会放在文章最后的网盘里供大家下载 </p>
+<h3 id="2-第二步"><a href="#2-第二步" class="headerlink" title="2.第二步"></a>2.第二步</h3><p>​	刷入第三方安卓以后，准备一个U盘将Reboot to LibreELEC.apk 放入U盘内，然后把U盘插入到盒子上安装它，将注意这时候我们就不能使用遥控器来控制了，要通过键盘来控制盒子。</p>
+<h3 id="3-第三步"><a href="#3-第三步" class="headerlink" title="3.第三步"></a>3.第三步</h3><p>先在电脑上把armbian写入到TF卡中，用的工具可以随意，win32diskimager什么的都可以，我用的是树莓派的写卡工具，写入好后重新拔插一下读卡器，会认到一个boot的FAT32盘符，这些玩过树莓派和其他嵌入式板子的小伙伴们会很熟悉 编辑配置文件 exlinux.conf 把所有前面没有打#号注释掉的都注释掉。然后删掉meson-gxl-s905x-p212.dtb前的#号和最后一行的#号 解除掉这两个注释 exlinux配置就算结束了。回到BOOT根目录把<strong>u-boot-s905x-p212</strong>,重命名为<strong>u-boot.ext</strong>。接下来非常关键，要去dtb文件夹里找到<strong>meson-gxl-s905x-p212.dtb</strong>删掉用我给的<strong>meson-gxl-s905x-p212.dtb</strong>来替换它，这直接影响到你是否能正常的把armbian写入到emmc，如果不这么做，你在写卡部分会提示找不到emmc原因就是新款中兴盒子把emmc换成e-nand 它的频率从 0x5f5e100 变到了 0x2faf080 如果你有兴趣的话可以使用device-tree-compiler自己更改这个数值 ，篇幅问题我不再详述。<img src="https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406062217275.png"> </p>
+<h3 id="4-第四步"><a href="#4-第四步" class="headerlink" title="4.第四步"></a>4.<strong>第四步</strong></h3><p>​	就是把TF卡插到盒子上，启动Reboot to LibreELEC 然后授予ROOT权限它会自动重启 进入TF卡上的ARMBIAN 进入系统后设置root密码和初始账户密码 然后使用root登录并且严格按照我下面的操作来做</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd /boot</span><br><span class="line">chmod 755 install-aml.sh</span><br><span class="line">./install-aml.sh</span><br></pre></td></tr></table></figure>
+
+<p>如果不出问题的话 armbian会写入到EMMC中，如果提示找不到emmc或者正在使用emmc 请检查上一步是否替换了dtb。</p>
+<h3 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h3><h4 id="最后希望各位都能顺利的进行刷机操作-如果有不明白的可以直接在本篇文章下给我留言-或者发邮件给我-113-105-x62-111-x68-x61-x6e-64-113-x69-x62-111-104-x61-x6e-46-x63-x6f-109"><a href="#最后希望各位都能顺利的进行刷机操作-如果有不明白的可以直接在本篇文章下给我留言-或者发邮件给我-113-105-x62-111-x68-x61-x6e-64-113-x69-x62-111-104-x61-x6e-46-x63-x6f-109" class="headerlink" title="最后希望各位都能顺利的进行刷机操作 如果有不明白的可以直接在本篇文章下给我留言 或者发邮件给我 &#113;&#105;&#x62;&#111;&#x68;&#x61;&#x6e;&#64;&#113;&#x69;&#x62;&#111;&#104;&#x61;&#x6e;&#46;&#x63;&#x6f;&#109;"></a>最后希望各位都能顺利的进行刷机操作 如果有不明白的可以直接在本篇文章下给我留言 或者发邮件给我 <a href="mailto:&#113;&#105;&#x62;&#111;&#x68;&#x61;&#x6e;&#64;&#113;&#x69;&#x62;&#111;&#104;&#x61;&#x6e;&#46;&#x63;&#x6f;&#109;">&#113;&#105;&#x62;&#111;&#x68;&#x61;&#x6e;&#64;&#113;&#x69;&#x62;&#111;&#104;&#x61;&#x6e;&#46;&#x63;&#x6f;&#109;</a></h4><h4 id="需要用到的文件-百度网盘：链接：https-pan-baidu-com-s-1iqUmCWDgnXuqhIMhbbdGdQ-pwd-gtrg-提取码：gtrg-解压密码zte123456"><a href="#需要用到的文件-百度网盘：链接：https-pan-baidu-com-s-1iqUmCWDgnXuqhIMhbbdGdQ-pwd-gtrg-提取码：gtrg-解压密码zte123456" class="headerlink" title="需要用到的文件 百度网盘：链接：https://pan.baidu.com/s/1iqUmCWDgnXuqhIMhbbdGdQ?pwd=gtrg 提取码：gtrg 解压密码zte123456"></a>需要用到的文件 百度网盘：链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1iqUmCWDgnXuqhIMhbbdGdQ?pwd=gtrg">https://pan.baidu.com/s/1iqUmCWDgnXuqhIMhbbdGdQ?pwd=gtrg</a> 提取码：gtrg 解压密码zte123456</h4><h4 id="补链接：https-pan-baidu-com-s-1ZJKnPLrFZbFBlWE3uXBDHw"><a href="#补链接：https-pan-baidu-com-s-1ZJKnPLrFZbFBlWE3uXBDHw" class="headerlink" title="补链接：https://pan.baidu.com/s/1ZJKnPLrFZbFBlWE3uXBDHw"></a>补链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1ZJKnPLrFZbFBlWE3uXBDHw">https://pan.baidu.com/s/1ZJKnPLrFZbFBlWE3uXBDHw</a></h4><h4 id="提取码：7nl8"><a href="#提取码：7nl8" class="headerlink" title="提取码：7nl8"></a>提取码：7nl8</h4><h4 id="最近参加工作了，链接一直没来得及补，不好意思各位"><a href="#最近参加工作了，链接一直没来得及补，不好意思各位" class="headerlink" title="最近参加工作了，链接一直没来得及补，不好意思各位"></a>最近参加工作了，链接一直没来得及补，不好意思各位</h4>
+	  <div class="article-footer-copyright">
+
+    转载时请注明，本篇文章来自 qibohan.com.</a>
+</div>
+
+	</div>
+
+	
+	<span id="/2022/06/02/zte-set-top-box-zxv10-b860av2-1t-2022-install-armbian-system/" class="leancloud-visitors view" data-flag-title="中兴机顶盒ZXV10 B860AV2.1T 2022款刷armbian系统">
+		<em class="post-meta-item-text"> Page View </em> <i class="leancloud-visitors-count"></i>
+	</span>
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a href="/2024/06/06/solution-to-password-error-after-modifying-wechat-account-password-(remote-desktop-&-smb-shared-access-etc.)/" type="button" class="btn btn-default"><i
+                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/2022/04/17/use-java-to-make-the-computer-randomly-generate-10-two-digit-integers-and-store-them/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2022-06-02 
+	</div>
+	
+
+	<!-- categories -->
+    
+
+	<!-- tags -->
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 q1b0h4n's Blog
+  
+      powered by Hexo</a></a>  
+      <br><br>    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        <span>黑ICP备2022002096号-1</span>
+      </a>
+      <br><br><a href="https://beian.mps.gov.cn/#/query/webSearch?code=23011002000555" style="color:#ffffff;text-decoration:none;padding-left:18px; background:url(https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406081937437.png)no-repeat left center;background-size:17px 17px;" rel= "noreferrer" target="_blank"><span>黑公网安备23011002000555</span></a>
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"superSample":2,"width":180,"height":360,"position":"left","hOffset":20,"vOffset":0},"mobile":{"show":false,"scale":0.5},"react":{"opacityDefault":0.7},"log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+   </html>

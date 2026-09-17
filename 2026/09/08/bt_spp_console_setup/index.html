@@ -1,0 +1,389 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>Bluetooth SPP Console 调试交换机 - 配置总结 | q1b0h4n&#39;s Blog</title>
+  <meta name="author" content="q1b0h4n">
+  
+  <meta name="description" content="使用 Bluetooth SPP 协议连接交换机 Console 口进行调试的完整配置过程，包含设备扫描、配对、RFCOMM 连接排错记录。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Bluetooth SPP Console 调试交换机 - 配置总结"/>
+  <meta property="og:site_name" content="q1b0h4n&#39;s Blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">q1b0h4n&#39;s Blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class="fa fa-archive"></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class="fa fa-folder"></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class="fa fa-tags"></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class="fa fa-user"></i>About
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> Bluetooth SPP Console 调试交换机 - 配置总结</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  
+		 <div class="alert alert-success description">
+			<i class="fa fa-info-circle"></i> 使用 Bluetooth SPP 协议连接交换机 Console 口进行调试的完整配置过程，包含设备扫描、配对、RFCOMM 连接排错记录。
+		 </div> <!-- alert -->
+	  		
+
+	  <h1 id="Bluetooth-SPP-Console-调试交换机-配置总结"><a href="#Bluetooth-SPP-Console-调试交换机-配置总结" class="headerlink" title="Bluetooth SPP Console 调试交换机 - 配置总结"></a>Bluetooth SPP Console 调试交换机 - 配置总结</h1><h2 id="1-环境信息"><a href="#1-环境信息" class="headerlink" title="1. 环境信息"></a>1. 环境信息</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>操作系统</td>
+<td>Arch Linux (Kernel 7.1.9)</td>
+</tr>
+<tr>
+<td>蓝牙适配器</td>
+<td>XX:XX:XX:XX:XX:XX (Qualcomm)</td>
+</tr>
+<tr>
+<td>蓝牙协议栈</td>
+<td>BlueZ 5.87</td>
+</tr>
+<tr>
+<td>目标设备</td>
+<td>XY_SPP_XXXXVXXX</td>
+</tr>
+<tr>
+<td>MAC 地址</td>
+<td>AA:BB:CC:DD:EE:FF</td>
+</tr>
+<tr>
+<td>SPP 波特率</td>
+<td>9600 (蓝牙 SPP 不使用波特率，此为软件层配置)</td>
+</tr>
+</tbody></table>
+<h2 id="2-扫描发现的设备"><a href="#2-扫描发现的设备" class="headerlink" title="2. 扫描发现的设备"></a>2. 扫描发现的设备</h2><table>
+<thead>
+<tr>
+<th>MAC</th>
+<th>名称</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AA:BB:CC:DD:EE:FF</td>
+<td><strong>XY_SPP_XXXXVXXX</strong></td>
+<td>✅ 目标交换机 SPP Console</td>
+</tr>
+<tr>
+<td>AA:BB:CC:DD:EE:01</td>
+<td>XY_BLE_XXXXVXXX</td>
+<td>BLE 版本 (未使用)</td>
+</tr>
+<tr>
+<td>AA:BB:CC:DD:EE:02</td>
+<td>XXX的AirPods</td>
+<td>无关</td>
+</tr>
+<tr>
+<td>AA:BB:CC:DD:EE:03</td>
+<td>LYWSD03MMC</td>
+<td>温湿度传感器 (无关)</td>
+</tr>
+</tbody></table>
+<h2 id="3-已完成的步骤"><a href="#3-已完成的步骤" class="headerlink" title="3. 已完成的步骤"></a>3. 已完成的步骤</h2><h3 id="3-1-设备配对-✅"><a href="#3-1-设备配对-✅" class="headerlink" title="3.1 设备配对 ✅"></a>3.1 设备配对 ✅</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bluetoothctl pair AA:BB:CC:DD:EE:FF</span><br><span class="line">bluetoothctl trust AA:BB:CC:DD:EE:FF</span><br></pre></td></tr></table></figure>
+<ul>
+<li>状态: Paired&#x3D;yes, Bonded&#x3D;yes, Trusted&#x3D;yes</li>
+</ul>
+<h3 id="3-2-RFCOMM-通道探测-❌"><a href="#3-2-RFCOMM-通道探测-❌" class="headerlink" title="3.2 RFCOMM 通道探测 ❌"></a>3.2 RFCOMM 通道探测 ❌</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 /tmp/bt_debug.py</span><br></pre></td></tr></table></figure>
+<ul>
+<li>通道 1-30 全部返回 <code>connect(): wrong format</code></li>
+<li><strong>原因</strong>: 需要 <code>sudo</code> 加载 <code>rfcomm</code> 内核模块并安装 <code>bluez-deprecated-tools</code> 包</li>
+</ul>
+<h2 id="4-当前阻塞问题"><a href="#4-当前阻塞问题" class="headerlink" title="4. 当前阻塞问题"></a>4. 当前阻塞问题</h2><h3 id="问题-RFCOMM-连接失败"><a href="#问题-RFCOMM-连接失败" class="headerlink" title="问题: RFCOMM 连接失败"></a>问题: RFCOMM 连接失败</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OSError: connect(): wrong format</span><br></pre></td></tr></table></figure>
+
+<p><strong>根本原因</strong>:</p>
+<ol>
+<li><code>rfcomm</code> 模块已加载 (<code>lsmod | grep rfcomm</code> 显示已加载)</li>
+<li>但缺少 <code>/dev/rfcomm0</code> 设备节点</li>
+<li>需要安装 <code>bluez-deprecated-tools</code> 包提供 <code>rfcomm</code> CLI 工具</li>
+</ol>
+<h3 id="解决方案-需要-sudo-权限"><a href="#解决方案-需要-sudo-权限" class="headerlink" title="解决方案 (需要 sudo 权限)"></a>解决方案 (需要 sudo 权限)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 安装 deprecated tools</span></span><br><span class="line">sudo pacman -S bluez-deprecated-tools</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 绑定 RFCOMM 设备 (channel 需通过 SDP 查询确定)</span></span><br><span class="line">sudo rfcomm <span class="built_in">bind</span> /dev/rfcomm0 AA:BB:CC:DD:EE:FF 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 验证设备节点</span></span><br><span class="line"><span class="built_in">ls</span> -la /dev/rfcomm0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 使用 minicom 连接</span></span><br><span class="line">minicom -D /dev/rfcomm0 -b 9600</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-替代方案-无需-sudo"><a href="#5-替代方案-无需-sudo" class="headerlink" title="5. 替代方案 (无需 sudo)"></a>5. 替代方案 (无需 sudo)</h2><h3 id="方案-A-使用-socat-桥接"><a href="#方案-A-使用-socat-桥接" class="headerlink" title="方案 A: 使用 socat 桥接"></a>方案 A: 使用 socat 桥接</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 需要先通过 bluetoothctl 连接</span></span><br><span class="line">bluetoothctl connect AA:BB:CC:DD:EE:FF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 socat 创建 PTY</span></span><br><span class="line">socat PTY,<span class="built_in">link</span>=/tmp/bt_spp,raw,<span class="built_in">echo</span>=0 TCP:localhost:RFCOMM_PORT</span><br></pre></td></tr></table></figure>
+
+<h3 id="方案-B-Python-RFCOMM-脚本-待调试"><a href="#方案-B-Python-RFCOMM-脚本-待调试" class="headerlink" title="方案 B: Python RFCOMM 脚本 (待调试)"></a>方案 B: Python RFCOMM 脚本 (待调试)</h3><p>已创建脚本 <code>/tmp/bt_spp_console.py</code>，但需要修复 struct 打包问题。</p>
+<h2 id="6-后续步骤"><a href="#6-后续步骤" class="headerlink" title="6. 后续步骤"></a>6. 后续步骤</h2><ol>
+<li><strong>获取 sudo 权限</strong> 执行安装命令</li>
+<li><strong>查询 RFCOMM 通道号</strong>:<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装后执行</span></span><br><span class="line">sdptool browse AA:BB:CC:DD:EE:FF | grep -A 10 <span class="string">&quot;Serial Port&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li><strong>绑定并连接</strong>:<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo rfcomm <span class="built_in">bind</span> /dev/rfcomm0 AA:BB:CC:DD:EE:FF &lt;CHANNEL&gt;</span><br><span class="line">minicom -D /dev/rfcomm0 -b 9600</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="7-工具和脚本位置"><a href="#7-工具和脚本位置" class="headerlink" title="7. 工具和脚本位置"></a>7. 工具和脚本位置</h2><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/tmp/bt_spp_console.py</code></td>
+<td>Python SPP 控制台桥接脚本</td>
+</tr>
+<tr>
+<td><code>/tmp/bt_debug.py</code></td>
+<td>RFCOMM 连接调试脚本</td>
+</tr>
+<tr>
+<td><code>/tmp/bt_spp_dbus.py</code></td>
+<td>D-Bus API 连接脚本</td>
+</tr>
+</tbody></table>
+<h2 id="8-参考命令"><a href="#8-参考命令" class="headerlink" title="8. 参考命令"></a>8. 参考命令</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 扫描蓝牙设备</span></span><br><span class="line">bluetoothctl scan on</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看设备信息</span></span><br><span class="line">bluetoothctl info AA:BB:CC:DD:EE:FF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配对和信任</span></span><br><span class="line">bluetoothctl pair AA:BB:CC:DD:EE:FF</span><br><span class="line">bluetoothctl trust AA:BB:CC:DD:EE:FF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接设备</span></span><br><span class="line">bluetoothctl connect AA:BB:CC:DD:EE:FF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看已配对设备</span></span><br><span class="line">bluetoothctl paired-devices</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>最后更新</strong>: 2026-09-08  </p>
+
+	  <div class="article-footer-copyright">
+
+    转载时请注明，本篇文章来自 qibohan.com.</a>
+</div>
+
+	</div>
+
+	
+	<span id="/2026/09/08/bt_spp_console_setup/" class="leancloud-visitors view" data-flag-title="Bluetooth SPP Console 调试交换机 - 配置总结">
+		<em class="post-meta-item-text"> Page View </em> <i class="leancloud-visitors-count"></i>
+	</span>
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a href="/2026/09/09/lang-fix-fedora/" type="button" class="btn btn-default"><i
+                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/2026/09/08/edge-font-fix/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-09-08 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/categories/网络/">网络<span>1</span></a></li> <li><a href="/categories/网络/硬件调试/">硬件调试<span>1</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/蓝牙/">蓝牙<span>1</span></a></li> <li><a href="/tags/SPP/">SPP<span>1</span></a></li> <li><a href="/tags/串口调试/">串口调试<span>1</span></a></li> <li><a href="/tags/交换机/">交换机<span>1</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 q1b0h4n's Blog
+  
+      powered by Hexo</a></a>  
+      <br><br>    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        <span>黑ICP备2022002096号-1</span>
+      </a>
+      <br><br><a href="https://beian.mps.gov.cn/#/query/webSearch?code=23011002000555" style="color:#ffffff;text-decoration:none;padding-left:18px; background:url(https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406081937437.png)no-repeat left center;background-size:17px 17px;" rel= "noreferrer" target="_blank"><span>黑公网安备23011002000555</span></a>
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"superSample":2,"width":180,"height":360,"position":"left","hOffset":20,"vOffset":0},"mobile":{"show":false,"scale":0.5},"react":{"opacityDefault":0.7},"log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+   </html>

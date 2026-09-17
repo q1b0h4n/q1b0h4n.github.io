@@ -1,0 +1,362 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>腾讯会议 (wemeet) Wayland 屏幕共享修复记录 | q1b0h4n&#39;s Blog</title>
+  <meta name="author" content="q1b0h4n">
+  
+  <meta name="description" content="日期：2026-09-07环境：Arch Linux + niri (Wayland&amp;#x2F;scrollable-tiling) + AMD Ellesmere 双屏软件：wemeet-bin 3.26.10.401-1 + xdg-desktop-portal 1.22.1 (main) + xdg-desktop-portal-wlr 0.8.2
+
+
+1. 问题现象在 niri Wayland 环境下，腾讯会议无法正常共享屏幕：
+
+GNOME portal 路径（niri-portals.conf 指向 gnome 后端）：共享后黑屏（无视频流）
+wlr portal 路径（指向 xdg-desktop-portal-wlr）：点击共享后弹出显示器选区后无反应，6 秒后自动重试
+
+
+2. 根因分析2.1 直接根因：wemeet 客户端 D-Bus 竞态 bugwemeet 的定制模块 libscreen_share_module.so 存在异步调用链缺陷：
+1234规范要求的正确顺序：                                              wemeet 实际执行：CreateSession ──────────────┐                       CreateSession ────┐SelectSources ─────────────┼── (等待 Response) ──► SelectSources ────┼── (不等待!) ──► Start ✗Start ─────────────────────┘                       Start ─────────────┘"> 
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="腾讯会议 (wemeet) Wayland 屏幕共享修复记录"/>
+  <meta property="og:site_name" content="q1b0h4n&#39;s Blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">q1b0h4n&#39;s Blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class="fa fa-archive"></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class="fa fa-folder"></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class="fa fa-tags"></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class="fa fa-user"></i>About
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> 腾讯会议 (wemeet) Wayland 屏幕共享修复记录</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  		
+
+	  <blockquote>
+<p>日期：2026-09-07<br>环境：Arch Linux + niri (Wayland&#x2F;scrollable-tiling) + AMD Ellesmere 双屏<br>软件：wemeet-bin 3.26.10.401-1 + xdg-desktop-portal 1.22.1 (main) + xdg-desktop-portal-wlr 0.8.2</p>
+</blockquote>
+<hr>
+<h2 id="1-问题现象"><a href="#1-问题现象" class="headerlink" title="1. 问题现象"></a>1. 问题现象</h2><p>在 niri Wayland 环境下，腾讯会议无法正常共享屏幕：</p>
+<ul>
+<li><strong>GNOME portal 路径</strong>（<code>niri-portals.conf</code> 指向 gnome 后端）：共享后<strong>黑屏</strong>（无视频流）</li>
+<li><strong>wlr portal 路径</strong>（指向 xdg-desktop-portal-wlr）：点击共享后<strong>弹出显示器选区后无反应</strong>，6 秒后自动重试</li>
+</ul>
+<hr>
+<h2 id="2-根因分析"><a href="#2-根因分析" class="headerlink" title="2. 根因分析"></a>2. 根因分析</h2><h3 id="2-1-直接根因：wemeet-客户端-D-Bus-竞态-bug"><a href="#2-1-直接根因：wemeet-客户端-D-Bus-竞态-bug" class="headerlink" title="2.1 直接根因：wemeet 客户端 D-Bus 竞态 bug"></a>2.1 直接根因：wemeet 客户端 D-Bus 竞态 bug</h3><p><code>wemeet</code> 的定制模块 <code>libscreen_share_module.so</code> 存在异步调用链缺陷：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">规范要求的正确顺序：                                              wemeet 实际执行：</span><br><span class="line">CreateSession ──────────────┐                       CreateSession ────┐</span><br><span class="line">SelectSources ─────────────┼── (等待 Response) ──► SelectSources ────┼── (不等待!) ──► Start ✗</span><br><span class="line">Start ─────────────────────┘                       Start ─────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong><code>Start</code> 的调用被直接放在 <code>SelectSources</code> 发出之后，没有等待其 Response 信号</strong>；只有更后面的 <code>OpenPipeWireRemote</code> 正确地放在了 <code>onStartResponse</code> 回调中。这是一个<strong>依赖竞态条件的未定义行为</strong>。</p>
+<h3 id="2-2-为什么-GNOME-能用而-wlr-不能用"><a href="#2-2-为什么-GNOME-能用而-wlr-不能用" class="headerlink" title="2.2 为什么 GNOME 能用而 wlr 不能用"></a>2.2 为什么 GNOME 能用而 wlr 不能用</h3><table>
+<thead>
+<tr>
+<th>Portal 后端</th>
+<th>SelectSources 行为</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>gnome</strong></td>
+<td><strong>立即返回</strong>，在 Start 中才弹窗等待用户选显示器</td>
+<td>掩盖了 wemeet 的竞态缺陷 → 流程跑通（但 AMD 下黑屏另有颜色格式问题）</td>
+</tr>
+<tr>
+<td><strong>wlr</strong></td>
+<td><strong>同步阻塞调用 slurp</strong> 等待用户选显示器</td>
+<td>Start 提前到达时 SelectSources 尚未完成 → <strong>必然失败</strong></td>
+</tr>
+</tbody></table>
+<h3 id="2-3-证据链"><a href="#2-3-证据链" class="headerlink" title="2.3 证据链"></a>2.3 证据链</h3><ul>
+<li>后端三层验证全部通过：直连 XDPW impl（node 86）、主 portal 路由（node 75）、wemeet 精确参数复现 <code>persist_mode=1, app_id=&#39;&#39;</code>（node 75）——<strong>排除 portal 后端问题</strong></li>
+<li>wemeet 14:04:03 发起 CreateSession(1_1822&#x2F;wemeet1) + SelectSources，14:04:05 <strong>SelectSources 成功</strong>（选定 HDMI-A-2），但 <strong>XDPW 从未收到 start method invoked</strong>，14:04:11（恰 6 秒后）会话关闭并重试——对应客户端超时逻辑</li>
+<li>用 <code>dbus-monitor</code>（Request 接口）+ <code>journalctl -v</code> 建立的 4 通道监控确认：问题在 wemeet 客户端侧，非路由层</li>
+</ul>
+<hr>
+<h2 id="3-修复方案"><a href="#3-修复方案" class="headerlink" title="3. 修复方案"></a>3. 修复方案</h2><p>采用社区逆向补丁 <a target="_blank" rel="noopener" href="https://github.com/Matheritasiv/wemeet-screenshare-patch">Matheritasiv&#x2F;wemeet-screenshare-patch</a>，该补丁精确针对 <strong>wemeet v3.26.10.401</strong>（与本地 wemeet-bin 3.26.10.401-1 完全匹配）。</p>
+<h3 id="3-1-应用补丁（仅-Hunk-0，修复-Start-竞态）"><a href="#3-1-应用补丁（仅-Hunk-0，修复-Start-竞态）" class="headerlink" title="3.1 应用补丁（仅 Hunk 0，修复 Start 竞态）"></a>3.1 应用补丁（仅 Hunk 0，修复 Start 竞态）</h3><p>补丁含三个 Hunk：</p>
+<ul>
+<li><strong>Hunk 0</strong>（必需）：将 <code>dbusStart()</code> 从 <code>dbusSelectSources()</code> 中移到 <code>onSelectSourcesResponse()</code> 回调 → 修复异步链</li>
+<li><strong>Hunk 1a&#x2F;1b</strong>（颜色格式 hook，AMD + force_mod_linear 场景<strong>不需要</strong>）：当前系统已用 <code>force_mod_linear=1</code> 解决颜色问题，按补丁作者说明<strong>跳过</strong>（否则需要额外 LD_PRELOAD hook 且可能颜色错误）</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 下载补丁：https://raw.githubusercontent.com/Matheritasiv/wemeet-screenshare-patch/main/patch.py</span></span><br><span class="line"><span class="comment"># 2. 生成只含 Hunk 0 的版本（或手动注释掉 PATCHES 中的 Hunk 1a/1b 与 libxcast.so 条目）</span></span><br><span class="line"><span class="comment"># 3. 备份原库</span></span><br><span class="line">sudo <span class="built_in">cp</span> /opt/wemeet/bin/modules/screen_share/libscreen_share_module.so \</span><br><span class="line">        /opt/wemeet/bin/modules/screen_share/libscreen_share_module.so.bak.20260907</span><br><span class="line"><span class="comment"># 4. 先 dry-run 验证字节精确匹配（实测 5 处 offset 全部 [OK]）</span></span><br><span class="line">python3 wemeet-patch-hunk0.py /opt/wemeet --dry-run</span><br><span class="line"><span class="comment"># 5. 应用</span></span><br><span class="line">sudo python3 wemeet-patch-hunk0.py /opt/wemeet</span><br></pre></td></tr></table></figure>
+
+<p>应用结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[PATCH]    0x0043d2fa: 00 =&gt; 5d</span><br><span class="line">[PATCH]    0x0043d331: 88f7 =&gt; 60fb</span><br><span class="line">[PATCH]    0x0043d336: 83c718488b8588f7ffff48 =&gt; 89fe4883c618e910000000</span><br><span class="line">[PATCH]    0x0043d357: 0000 =&gt; e208</span><br><span class="line">[PATCH]    0x0043dc38: e8c305d9 =&gt; e9ecf6ff</span><br><span class="line">→ Hunk #0 applied (20 byte(s))</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-恢复-wlr-显示器选择界面"><a href="#3-2-恢复-wlr-显示器选择界面" class="headerlink" title="3.2 恢复 wlr 显示器选择界面"></a>3.2 恢复 wlr 显示器选择界面</h3><p>调试期间为绕过竞态，曾将 wlr 配置改为 <code>chooser_type=none</code> + <code>output_name=HDMI-A-2</code>（固定输出、跳过 slurp）。补丁生效后<strong>需移除这两行</strong>以恢复选区界面：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/.config/xdg-desktop-portal-wlr/config</span></span><br><span class="line"><span class="section">[screencast]</span></span><br><span class="line"><span class="attr">force_mod_linear</span>=<span class="number">1</span>        <span class="comment"># 保留：AMD Ellesmere 线性缓冲，解决颜色问题</span></span><br><span class="line"><span class="comment"># chooser_type=none       # 已删除（恢复 slurp 选择）</span></span><br><span class="line"><span class="comment"># output_name=HDMI-A-2    # 已删除</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl --user restart xdg-desktop-portal-wlr</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-重启-wemeet"><a href="#3-3-重启-wemeet" class="headerlink" title="3.3 重启 wemeet"></a>3.3 重启 wemeet</h3><p><strong>必须完全退出 wemeet 进程再重新启动</strong>（运行中的进程仍持有旧库的内存映射，补丁只对磁盘文件生效）。</p>
+<hr>
+<h2 id="4-修复后行为"><a href="#4-修复后行为" class="headerlink" title="4. 修复后行为"></a>4. 修复后行为</h2><ul>
+<li>点击”共享屏幕” → <strong>弹出 slurp 显示器选择界面</strong> ✓</li>
+<li>选定显示器 → <strong>正常出画面</strong> ✓</li>
+<li>双屏（HDMI-A-1 &#x2F; HDMI-A-2）均可选 ✓</li>
+</ul>
+<hr>
+<h2 id="5-回滚方法"><a href="#5-回滚方法" class="headerlink" title="5. 回滚方法"></a>5. 回滚方法</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="built_in">cp</span> /opt/wemeet/bin/modules/screen_share/libscreen_share_module.so.bak.20260907 \</span><br><span class="line">        /opt/wemeet/bin/modules/screen_share/libscreen_share_module.so</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-注意事项"><a href="#6-注意事项" class="headerlink" title="6. 注意事项"></a>6. 注意事项</h2><ol>
+<li><strong>包升级后需重新打补丁</strong>：<code>wemeet-bin</code> 更新后库文件被覆盖，需重新执行第 3 节步骤（先 dry-run 确认新版本字节仍匹配；若补丁作者未跟进新版本，需等待其更新）</li>
+<li><strong>只打 Hunk 0 无需 LD_PRELOAD hook</strong>：补丁 README 明确说明，仅当需要颜色转换（Hunk 1a&#x2F;1b）时才需 <code>export LD_PRELOAD=.../libhook.so</code></li>
+<li>快捷操作：完整打补丁命令（含下载）</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> https_proxy=http://10.255.254.153:7890   <span class="comment"># 若需代理</span></span><br><span class="line">curl -sL -o /tmp/patch.py https://raw.githubusercontent.com/Matheritasiv/wemeet-screenshare-patch/main/patch.py</span><br><span class="line">python3 /tmp/patch.py /opt/wemeet --dry-run &amp;&amp; sudo python3 /tmp/patch.py /opt/wemeet</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>补丁项目：<a target="_blank" rel="noopener" href="https://github.com/Matheritasiv/wemeet-screenshare-patch">https://github.com/Matheritasiv/wemeet-screenshare-patch</a></li>
+<li>xdg-desktop-portal ScreenCast 规范：<a target="_blank" rel="noopener" href="https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.ScreenCast.html">https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.ScreenCast.html</a></li>
+<li>niri 黑屏背景：niri PR #1791（SHM 回退）未合并</li>
+</ul>
+
+	  <div class="article-footer-copyright">
+
+    转载时请注明，本篇文章来自 qibohan.com.</a>
+</div>
+
+	</div>
+
+	
+	<span id="/2026/09/07/wemeet-screen-share-fix/" class="leancloud-visitors view" data-flag-title="腾讯会议 (wemeet) Wayland 屏幕共享修复记录">
+		<em class="post-meta-item-text"> Page View </em> <i class="leancloud-visitors-count"></i>
+	</span>
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a href="/2026/09/08/edge-font-fix/" type="button" class="btn btn-default"><i
+                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/2026/06/25/arch-install-packages/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-09-07 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/categories/Linux/">Linux<span>5</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/Linux/">Linux<span>2</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 q1b0h4n's Blog
+  
+      powered by Hexo</a></a>  
+      <br><br>    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        <span>黑ICP备2022002096号-1</span>
+      </a>
+      <br><br><a href="https://beian.mps.gov.cn/#/query/webSearch?code=23011002000555" style="color:#ffffff;text-decoration:none;padding-left:18px; background:url(https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406081937437.png)no-repeat left center;background-size:17px 17px;" rel= "noreferrer" target="_blank"><span>黑公网安备23011002000555</span></a>
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"superSample":2,"width":180,"height":360,"position":"left","hOffset":20,"vOffset":0},"mobile":{"show":false,"scale":0.5},"react":{"opacityDefault":0.7},"log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+   </html>

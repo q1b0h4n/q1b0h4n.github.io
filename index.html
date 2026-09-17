@@ -1,0 +1,1117 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>q1b0h4n&#39;s Blog</title>
+  <meta name="author" content="q1b0h4n">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="q1b0h4n&#39;s Blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">q1b0h4n&#39;s Blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class="fa fa-archive"></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class="fa fa-folder"></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class="fa fa-tags"></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class="fa fa-user"></i>About
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 <div class="page-header logo">
+  <h1>q1b0h4n&#39;s Blog<span class="blink-fast">|</span></h1>
+</div>
+
+<div class="row page">
+
+	
+	<div class="col-md-9">
+	
+
+		<div class="slogan">
+
+
+		<i class="fa fa-heart blink-slow"></i>
+
+		Network Engineer at HRBUST.
+
+</div>    
+
+		<div id="top_search"></div>
+		<div class="mypage">
+		
+		<!-- title and entry -->
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2026/09/15/vsan-virtual-objects-iscsi-orphan-target/" >vSAN「虚拟对象」页面报&#34;无法提取请求的数据&#34;——一个孤儿 iSCSI 目标引发的血案</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-09-15  </div>
+		</div>
+	</div>
+	
+
+
+			<!--
+<div class="entry">
+  <div class="row">
+	
+	
+		<p>vSphere Client 里点开 vSAN → <strong>虚拟对象</strong>（Virtual Objects），页面不给列表，只甩一句：</p>
+<blockquote>
+<p>无法提取请求的数据。有关详细信息，请查看 vSphere Client 日志</p>
+</blockquote>
+<p>按经验这通常意味着 vSAN 对象健康度出问题。但这次查下去发现<strong>集群健康全绿、没有对象降级、20 多台 VM 全部正常运行</strong> —— 问题完全不在存储层。</p>
+<p>真正的元凶是一个<strong>孤儿 iSCSI 目标</strong>，以及 vSAN UI 插件里一处没做判空的代码。</p>
+	
+
+	</div>
+  <a type="button" href="/2026/09/15/vsan-virtual-objects-iscsi-orphan-target/#more" class="btn btn-default more">Read More</a>
+</div>
+
+-->
+<div class="entry">
+  <div class="row">
+	
+	
+		<p>vSphere Client 里点开 vSAN → <strong>虚拟对象</strong>（Virtual Objects），页面不给列表，只甩一句：</p>
+<blockquote>
+<p>无法提取请求的数据。有关详细信息，请查看 vSphere Client 日志</p>
+</blockquote>
+<p>按经验这通常意味着 vSAN 对象健康度出问题。但这次查下去发现<strong>集群健康全绿、没有对象降级、20 多台 VM 全部正常运行</strong> —— 问题完全不在存储层。</p>
+<p>真正的元凶是一个<strong>孤儿 iSCSI 目标</strong>，以及 vSAN UI 插件里一处没做判空的代码。</p>
+	
+	</div>
+  <a type="button" href="/2026/09/15/vsan-virtual-objects-iscsi-orphan-target/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2026/09/15/vsphere-client-login-failed-ws1b-oauth2-client/" >vSphere Client 登录失败：WS1B OAuth2 Client 丢失排查与恢复（KB 311960 实战）</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-09-15  </div>
+		</div>
+	</div>
+	
+
+
+			<!--
+<div class="entry">
+  <div class="row">
+	
+	
+		<p>某天早上打开 vSphere Client，登录页转两下就报错，连错误提示都很含糊。打开浏览器 F12 看到的是一个很”底层”的错误码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">oauth2.client.with.client.id.not.found</span><br></pre></td></tr></table></figure>
+
+<p>顺着这条线挖下去，最后定位到是 <strong>vCenter 的 WS1B OAuth2 Client 记录丢失</strong>，用 Broadcom KB 311960 的步骤重建后恢复。</p>
+<p>这篇记录完整排查链路、取证命令和几个把我带偏的坑。</p>
+	
+
+	</div>
+  <a type="button" href="/2026/09/15/vsphere-client-login-failed-ws1b-oauth2-client/#more" class="btn btn-default more">Read More</a>
+</div>
+
+-->
+<div class="entry">
+  <div class="row">
+	
+	
+		<p>某天早上打开 vSphere Client，登录页转两下就报错，连错误提示都很含糊。打开浏览器 F12 看到的是一个很”底层”的错误码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">oauth2.client.with.client.id.not.found</span><br></pre></td></tr></table></figure>
+
+<p>顺着这条线挖下去，最后定位到是 <strong>vCenter 的 WS1B OAuth2 Client 记录丢失</strong>，用 Broadcom KB 311960 的步骤重建后恢复。</p>
+<p>这篇记录完整排查链路、取证命令和几个把我带偏的坑。</p>
+	
+	</div>
+  <a type="button" href="/2026/09/15/vsphere-client-login-failed-ws1b-oauth2-client/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2026/09/09/lang-fix-fedora/" title="Fedora 44 上 LANG 被 /etc/profile.d/lang.sh 的 CJK fallback 逻辑强制改为 en_US.UTF-8，并通过 niri-session 的 import-environment 泄漏进 systemd user 环境。本文记录根因分析与 systemd oneshot 覆盖修复方案。">LANG 环境变量被强制改为 en_US.UTF-8 问题排查与修复</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-09-09  </div>
+		</div>
+	</div>
+	
+
+
+			<!--
+<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="LANG-环境变量被强制改为-en-US-UTF-8-问题排查与修复"><a href="#LANG-环境变量被强制改为-en-US-UTF-8-问题排查与修复" class="headerlink" title="LANG 环境变量被强制改为 en_US.UTF-8 问题排查与修复"></a>LANG 环境变量被强制改为 en_US.UTF-8 问题排查与修复</h1><blockquote>
+<p>主机：Fedora 44 (qbh-x220) · 用户：qibohan · 修复日期：2026-09-09</p>
+</blockquote>
+<hr>
+<h2 id="一、问题现象"><a href="#一、问题现象" class="headerlink" title="一、问题现象"></a>一、问题现象</h2><p>桌面环境（niri + systemd user 环境）中 <code>LANG</code> 显示为 <code>en_US.UTF-8</code>，而不是预期的 <code>zh_CN.UTF-8</code>。</p>
+<p>导致中文环境变量丢失，影响：</p>
+<ul>
+<li>应用程序界面语言（切换为英文）</li>
+<li>中文 locale 相关的排序、日期、分词行为</li>
+</ul>
+<hr>
+<h2 id="二、根因分析"><a href="#二、根因分析" class="headerlink" title="二、根因分析"></a>二、根因分析</h2><h3 id="1-罪魁祸首：-etc-profile-d-lang-sh-的-CJK-fallback-逻辑"><a href="#1-罪魁祸首：-etc-profile-d-lang-sh-的-CJK-fallback-逻辑" class="headerlink" title="1. 罪魁祸首：/etc/profile.d/lang.sh 的 CJK fallback 逻辑"></a>1. 罪魁祸首：<code>/etc/profile.d/lang.sh</code> 的 CJK fallback 逻辑</h3>
+	
+
+	</div>
+  <a type="button" href="/2026/09/09/lang-fix-fedora/#more" class="btn btn-default more">Read More</a>
+</div>
+
+-->
+<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="LANG-环境变量被强制改为-en-US-UTF-8-问题排查与修复"><a href="#LANG-环境变量被强制改为-en-US-UTF-8-问题排查与修复" class="headerlink" title="LANG 环境变量被强制改为 en_US.UTF-8 问题排查与修复"></a>LANG 环境变量被强制改为 en_US.UTF-8 问题排查与修复</h1><blockquote>
+<p>主机：Fedora 44 (qbh-x220) · 用户：qibohan · 修复日期：2026-09-09</p>
+</blockquote>
+<hr>
+<h2 id="一、问题现象"><a href="#一、问题现象" class="headerlink" title="一、问题现象"></a>一、问题现象</h2><p>桌面环境（niri + systemd user 环境）中 <code>LANG</code> 显示为 <code>en_US.UTF-8</code>，而不是预期的 <code>zh_CN.UTF-8</code>。</p>
+<p>导致中文环境变量丢失，影响：</p>
+<ul>
+<li>应用程序界面语言（切换为英文）</li>
+<li>中文 locale 相关的排序、日期、分词行为</li>
+</ul>
+<hr>
+<h2 id="二、根因分析"><a href="#二、根因分析" class="headerlink" title="二、根因分析"></a>二、根因分析</h2><h3 id="1-罪魁祸首：-etc-profile-d-lang-sh-的-CJK-fallback-逻辑"><a href="#1-罪魁祸首：-etc-profile-d-lang-sh-的-CJK-fallback-逻辑" class="headerlink" title="1. 罪魁祸首：/etc/profile.d/lang.sh 的 CJK fallback 逻辑"></a>1. 罪魁祸首：<code>/etc/profile.d/lang.sh</code> 的 CJK fallback 逻辑</h3>
+	
+	</div>
+  <a type="button" href="/2026/09/09/lang-fix-fedora/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2026/09/08/bt_spp_console_setup/" title="使用 Bluetooth SPP 协议连接交换机 Console 口进行调试的完整配置过程，包含设备扫描、配对、RFCOMM 连接排错记录。">Bluetooth SPP Console 调试交换机 - 配置总结</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-09-08  </div>
+		</div>
+	</div>
+	
+
+
+			<!--
+<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Bluetooth-SPP-Console-调试交换机-配置总结"><a href="#Bluetooth-SPP-Console-调试交换机-配置总结" class="headerlink" title="Bluetooth SPP Console 调试交换机 - 配置总结"></a>Bluetooth SPP Console 调试交换机 - 配置总结</h1><h2 id="1-环境信息"><a href="#1-环境信息" class="headerlink" title="1. 环境信息"></a>1. 环境信息</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>操作系统</td>
+<td>Arch Linux (Kernel 7.1.9)</td>
+</tr>
+<tr>
+<td>蓝牙适配器</td>
+<td>XX:XX:XX:XX:XX:XX (Qualcomm)</td>
+</tr>
+<tr>
+<td>蓝牙协议栈</td>
+<td>BlueZ 5.87</td>
+</tr>
+<tr>
+<td>目标设备</td>
+<td>XY_SPP_XXXXVXXX</td>
+</tr>
+<tr>
+<td>MAC 地址</td>
+<td>AA:BB:CC:DD:EE:FF</td>
+</tr>
+<tr>
+<td>SPP 波特率</td>
+<td>9600 (蓝牙 SPP 不使用波特率，此为软件层配置)</td>
+</tr>
+</tbody></table>
+<h2 id="2-扫描发现的设备"><a href="#2-扫描发现的设备" class="headerlink" title="2. 扫描发现的设备"></a>2. 扫描发现的设备</h2><table>
+<thead>
+<tr>
+<th>MAC</th>
+<th>名称</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AA:BB:CC:DD:EE:FF</td>
+<td><strong>XY_SPP_XXXXVXXX</strong></td>
+<td>✅ 目标交换机 SPP Console</td>
+</tr>
+<tr>
+<td>AA:BB:CC:DD:EE:01</td>
+<td>XY_BLE_XXXXVXXX</td>
+<td>BLE 版本 (未使用)</td>
+</tr>
+<tr>
+<td>AA:BB:CC:DD:EE:02</td>
+<td>XXX的AirPods</td>
+<td>无关</td>
+</tr>
+<tr>
+<td>AA:BB:CC:DD:EE:03</td>
+<td>LYWSD03MMC</td>
+<td>温湿度传感器 (无关)</td>
+</tr>
+</tbody></table>
+<h2 id="3-已完成的步骤"><a href="#3-已完成的步骤" class="headerlink" title="3. 已完成的步骤"></a>3. 已完成的步骤</h2><h3 id="3-1-设备配对-✅"><a href="#3-1-设备配对-✅" class="headerlink" title="3.1 设备配对 ✅"></a>3.1 设备配对 ✅</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bluetoothctl pair AA:BB:CC:DD:EE:FF</span><br><span class="line">bluetoothctl trust AA:BB:CC:DD:EE:FF</span><br></pre></td></tr></table></figure>
+<ul>
+<li>状态: Paired&#x3D;yes, Bonded&#x3D;yes, Trusted&#x3D;yes</li>
+</ul>
+<h3 id="3-2-RFCOMM-通道探测-❌"><a href="#3-2-RFCOMM-通道探测-❌" class="headerlink" title="3.2 RFCOMM 通道探测 ❌"></a>3.2 RFCOMM 通道探测 ❌</h3>
+	
+
+	</div>
+  <a type="button" href="/2026/09/08/bt_spp_console_setup/#more" class="btn btn-default more">Read More</a>
+</div>
+
+-->
+<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Bluetooth-SPP-Console-调试交换机-配置总结"><a href="#Bluetooth-SPP-Console-调试交换机-配置总结" class="headerlink" title="Bluetooth SPP Console 调试交换机 - 配置总结"></a>Bluetooth SPP Console 调试交换机 - 配置总结</h1><h2 id="1-环境信息"><a href="#1-环境信息" class="headerlink" title="1. 环境信息"></a>1. 环境信息</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>操作系统</td>
+<td>Arch Linux (Kernel 7.1.9)</td>
+</tr>
+<tr>
+<td>蓝牙适配器</td>
+<td>XX:XX:XX:XX:XX:XX (Qualcomm)</td>
+</tr>
+<tr>
+<td>蓝牙协议栈</td>
+<td>BlueZ 5.87</td>
+</tr>
+<tr>
+<td>目标设备</td>
+<td>XY_SPP_XXXXVXXX</td>
+</tr>
+<tr>
+<td>MAC 地址</td>
+<td>AA:BB:CC:DD:EE:FF</td>
+</tr>
+<tr>
+<td>SPP 波特率</td>
+<td>9600 (蓝牙 SPP 不使用波特率，此为软件层配置)</td>
+</tr>
+</tbody></table>
+<h2 id="2-扫描发现的设备"><a href="#2-扫描发现的设备" class="headerlink" title="2. 扫描发现的设备"></a>2. 扫描发现的设备</h2><table>
+<thead>
+<tr>
+<th>MAC</th>
+<th>名称</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AA:BB:CC:DD:EE:FF</td>
+<td><strong>XY_SPP_XXXXVXXX</strong></td>
+<td>✅ 目标交换机 SPP Console</td>
+</tr>
+<tr>
+<td>AA:BB:CC:DD:EE:01</td>
+<td>XY_BLE_XXXXVXXX</td>
+<td>BLE 版本 (未使用)</td>
+</tr>
+<tr>
+<td>AA:BB:CC:DD:EE:02</td>
+<td>XXX的AirPods</td>
+<td>无关</td>
+</tr>
+<tr>
+<td>AA:BB:CC:DD:EE:03</td>
+<td>LYWSD03MMC</td>
+<td>温湿度传感器 (无关)</td>
+</tr>
+</tbody></table>
+<h2 id="3-已完成的步骤"><a href="#3-已完成的步骤" class="headerlink" title="3. 已完成的步骤"></a>3. 已完成的步骤</h2><h3 id="3-1-设备配对-✅"><a href="#3-1-设备配对-✅" class="headerlink" title="3.1 设备配对 ✅"></a>3.1 设备配对 ✅</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bluetoothctl pair AA:BB:CC:DD:EE:FF</span><br><span class="line">bluetoothctl trust AA:BB:CC:DD:EE:FF</span><br></pre></td></tr></table></figure>
+<ul>
+<li>状态: Paired&#x3D;yes, Bonded&#x3D;yes, Trusted&#x3D;yes</li>
+</ul>
+<h3 id="3-2-RFCOMM-通道探测-❌"><a href="#3-2-RFCOMM-通道探测-❌" class="headerlink" title="3.2 RFCOMM 通道探测 ❌"></a>3.2 RFCOMM 通道探测 ❌</h3>
+	
+	</div>
+  <a type="button" href="/2026/09/08/bt_spp_console_setup/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2026/09/08/edge-font-fix/" title="Flatpak 版 Edge 浏览器在系统字体切换为 Noto 后菜单字体显示异常的排查与修复过程，包含 fontconfig 沙箱隔离机制分析。">Edge 浏览器菜单字体问题修复记录</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-09-08  </div>
+		</div>
+	</div>
+	
+
+
+			<!--
+<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Edge-浏览器菜单字体问题修复记录"><a href="#Edge-浏览器菜单字体问题修复记录" class="headerlink" title="Edge 浏览器菜单字体问题修复记录"></a>Edge 浏览器菜单字体问题修复记录</h1><p><strong>日期</strong>: 2026-09-08<br><strong>环境</strong>: Fedora 44 (远程 <code>user@192.168.x.x</code>)<br><strong>目标</strong>: 系统全局字体切换为 Noto 后,Edge 浏览器菜单字体仍显示异常</p>
+<hr>
+<h2 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h2><p>系统字体已全部切换为 Noto 系列,但 Edge 浏览器的菜单&#x2F;界面字体仍不正确<br>(渲染为 Noto CJK 变体而非 Noto Sans,观感异常)。</p>
+<h2 id="根因分析"><a href="#根因分析" class="headerlink" title="根因分析"></a>根因分析</h2><p>Edge 以 <strong>Flatpak</strong> 方式安装 (<code>com.microsoft.Edge</code>),运行于沙箱环境中,<br>其 fontconfig 链路与宿主机完全隔离:</p>
+<table>
+<thead>
+<tr>
+<th>隔离点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/etc/fonts/local.conf</code> 不可见</td>
+<td>系统级字体配置不在沙箱挂载路径内</td>
+</tr>
+<tr>
+<td><code>XDG_CONFIG_HOME</code> 被重定向</td>
+<td>沙箱内指向 <code>~/.var/app/com.microsoft.Edge/config</code>,与宿主机 <code>~/.config</code> 隔离</td>
+</tr>
+<tr>
+<td>沙箱字体路径重定义</td>
+<td><code>05-flatpak-fontpath.conf</code> 将字体目录重置为 <code>/run/host/fonts</code> 挂载点</td>
+</tr>
+</tbody></table>
+<p><strong>结果</strong>: 沙箱内 fontconfig 未收到任何 Noto 锁定配置,<br><code>fc-match sans-serif</code> 匹配到 <code>Noto Sans CJK SC</code>(中文变体)而非纯拉丁 <code>Noto Sans</code>。</p>
+<h2 id="修复方案"><a href="#修复方案" class="headerlink" title="修复方案"></a>修复方案</h2>
+	
+
+	</div>
+  <a type="button" href="/2026/09/08/edge-font-fix/#more" class="btn btn-default more">Read More</a>
+</div>
+
+-->
+<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Edge-浏览器菜单字体问题修复记录"><a href="#Edge-浏览器菜单字体问题修复记录" class="headerlink" title="Edge 浏览器菜单字体问题修复记录"></a>Edge 浏览器菜单字体问题修复记录</h1><p><strong>日期</strong>: 2026-09-08<br><strong>环境</strong>: Fedora 44 (远程 <code>user@192.168.x.x</code>)<br><strong>目标</strong>: 系统全局字体切换为 Noto 后,Edge 浏览器菜单字体仍显示异常</p>
+<hr>
+<h2 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h2><p>系统字体已全部切换为 Noto 系列,但 Edge 浏览器的菜单&#x2F;界面字体仍不正确<br>(渲染为 Noto CJK 变体而非 Noto Sans,观感异常)。</p>
+<h2 id="根因分析"><a href="#根因分析" class="headerlink" title="根因分析"></a>根因分析</h2><p>Edge 以 <strong>Flatpak</strong> 方式安装 (<code>com.microsoft.Edge</code>),运行于沙箱环境中,<br>其 fontconfig 链路与宿主机完全隔离:</p>
+<table>
+<thead>
+<tr>
+<th>隔离点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/etc/fonts/local.conf</code> 不可见</td>
+<td>系统级字体配置不在沙箱挂载路径内</td>
+</tr>
+<tr>
+<td><code>XDG_CONFIG_HOME</code> 被重定向</td>
+<td>沙箱内指向 <code>~/.var/app/com.microsoft.Edge/config</code>,与宿主机 <code>~/.config</code> 隔离</td>
+</tr>
+<tr>
+<td>沙箱字体路径重定义</td>
+<td><code>05-flatpak-fontpath.conf</code> 将字体目录重置为 <code>/run/host/fonts</code> 挂载点</td>
+</tr>
+</tbody></table>
+<p><strong>结果</strong>: 沙箱内 fontconfig 未收到任何 Noto 锁定配置,<br><code>fc-match sans-serif</code> 匹配到 <code>Noto Sans CJK SC</code>(中文变体)而非纯拉丁 <code>Noto Sans</code>。</p>
+<h2 id="修复方案"><a href="#修复方案" class="headerlink" title="修复方案"></a>修复方案</h2>
+	
+	</div>
+  <a type="button" href="/2026/09/08/edge-font-fix/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2026/09/07/wemeet-screen-share-fix/" >腾讯会议 (wemeet) Wayland 屏幕共享修复记录</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-09-07  </div>
+		</div>
+	</div>
+	
+
+
+			<!--
+<div class="entry">
+  <div class="row">
+	
+	
+		<blockquote>
+<p>日期：2026-09-07<br>环境：Arch Linux + niri (Wayland&#x2F;scrollable-tiling) + AMD Ellesmere 双屏<br>软件：wemeet-bin 3.26.10.401-1 + xdg-desktop-portal 1.22.1 (main) + xdg-desktop-portal-wlr 0.8.2</p>
+</blockquote>
+<hr>
+<h2 id="1-问题现象"><a href="#1-问题现象" class="headerlink" title="1. 问题现象"></a>1. 问题现象</h2><p>在 niri Wayland 环境下，腾讯会议无法正常共享屏幕：</p>
+<ul>
+<li><strong>GNOME portal 路径</strong>（<code>niri-portals.conf</code> 指向 gnome 后端）：共享后<strong>黑屏</strong>（无视频流）</li>
+<li><strong>wlr portal 路径</strong>（指向 xdg-desktop-portal-wlr）：点击共享后<strong>弹出显示器选区后无反应</strong>，6 秒后自动重试</li>
+</ul>
+<hr>
+<h2 id="2-根因分析"><a href="#2-根因分析" class="headerlink" title="2. 根因分析"></a>2. 根因分析</h2><h3 id="2-1-直接根因：wemeet-客户端-D-Bus-竞态-bug"><a href="#2-1-直接根因：wemeet-客户端-D-Bus-竞态-bug" class="headerlink" title="2.1 直接根因：wemeet 客户端 D-Bus 竞态 bug"></a>2.1 直接根因：wemeet 客户端 D-Bus 竞态 bug</h3><p><code>wemeet</code> 的定制模块 <code>libscreen_share_module.so</code> 存在异步调用链缺陷：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">规范要求的正确顺序：                                              wemeet 实际执行：</span><br><span class="line">CreateSession ──────────────┐                       CreateSession ────┐</span><br><span class="line">SelectSources ─────────────┼── (等待 Response) ──► SelectSources ────┼── (不等待!) ──► Start ✗</span><br><span class="line">Start ─────────────────────┘                       Start ─────────────┘</span><br></pre></td></tr></table></figure>
+	
+
+	</div>
+  <a type="button" href="/2026/09/07/wemeet-screen-share-fix/#more" class="btn btn-default more">Read More</a>
+</div>
+
+-->
+<div class="entry">
+  <div class="row">
+	
+	
+		<blockquote>
+<p>日期：2026-09-07<br>环境：Arch Linux + niri (Wayland&#x2F;scrollable-tiling) + AMD Ellesmere 双屏<br>软件：wemeet-bin 3.26.10.401-1 + xdg-desktop-portal 1.22.1 (main) + xdg-desktop-portal-wlr 0.8.2</p>
+</blockquote>
+<hr>
+<h2 id="1-问题现象"><a href="#1-问题现象" class="headerlink" title="1. 问题现象"></a>1. 问题现象</h2><p>在 niri Wayland 环境下，腾讯会议无法正常共享屏幕：</p>
+<ul>
+<li><strong>GNOME portal 路径</strong>（<code>niri-portals.conf</code> 指向 gnome 后端）：共享后<strong>黑屏</strong>（无视频流）</li>
+<li><strong>wlr portal 路径</strong>（指向 xdg-desktop-portal-wlr）：点击共享后<strong>弹出显示器选区后无反应</strong>，6 秒后自动重试</li>
+</ul>
+<hr>
+<h2 id="2-根因分析"><a href="#2-根因分析" class="headerlink" title="2. 根因分析"></a>2. 根因分析</h2><h3 id="2-1-直接根因：wemeet-客户端-D-Bus-竞态-bug"><a href="#2-1-直接根因：wemeet-客户端-D-Bus-竞态-bug" class="headerlink" title="2.1 直接根因：wemeet 客户端 D-Bus 竞态 bug"></a>2.1 直接根因：wemeet 客户端 D-Bus 竞态 bug</h3><p><code>wemeet</code> 的定制模块 <code>libscreen_share_module.so</code> 存在异步调用链缺陷：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">规范要求的正确顺序：                                              wemeet 实际执行：</span><br><span class="line">CreateSession ──────────────┐                       CreateSession ────┐</span><br><span class="line">SelectSources ─────────────┼── (等待 Response) ──► SelectSources ────┼── (不等待!) ──► Start ✗</span><br><span class="line">Start ─────────────────────┘                       Start ─────────────┘</span><br></pre></td></tr></table></figure>
+	
+	</div>
+  <a type="button" href="/2026/09/07/wemeet-screen-share-fix/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2026/06/25/arch-install-packages/" title="Arch Linux 系统手动安装的软件包完整清单，包含官方仓库和 AUR 包，附带一键重装脚本。">Arch Linux 已安装软件包清单</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-06-25  </div>
+		</div>
+	</div>
+	
+
+
+			<!--
+<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Arch-Linux-已安装软件包清单"><a href="#Arch-Linux-已安装软件包清单" class="headerlink" title="Arch Linux 已安装软件包清单"></a>Arch Linux 已安装软件包清单</h1><blockquote>
+<p><strong>系统</strong>: Arch Linux | <strong>内核</strong>: <code>linux 7.0.12.arch1-1</code><br><strong>桌面</strong>: KDE Plasma 6 + niri (Wayland)<br><strong>生成日期</strong>: 2026-06-25</p>
+</blockquote>
+<hr>
+<h2 id="📦-说明"><a href="#📦-说明" class="headerlink" title="📦 说明"></a>📦 说明</h2><ul>
+<li>以下均为 <strong>手动指定安装</strong> 的包（<code>pacman -Qe</code>），不含自动依赖</li>
+<li><code>(AUR)</code> 标记来自 AUR，需用 <code>yay -S</code> 安装</li>
+<li>无标记的为官方仓库包，用 <code>pacman -S</code> 即可</li>
+</ul>
+<hr>
+<h2 id="1-系统核心"><a href="#1-系统核心" class="headerlink" title="1. 系统核心"></a>1. 系统核心</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>base</code></td>
+<td>Arch 最小系统包集</td>
+<td><code>pacman -S base</code></td>
+</tr>
+<tr>
+<td><code>base-devel</code></td>
+<td>基础编译工具（gcc, make 等）</td>
+<td><code>pacman -S base-devel</code></td>
+</tr>
+<tr>
+<td><code>linux</code></td>
+<td>Linux 内核及模块</td>
+<td><code>pacman -S linux</code></td>
+</tr>
+<tr>
+<td><code>linux-firmware</code></td>
+<td>Linux 固件集</td>
+<td><code>pacman -S linux-firmware</code></td>
+</tr>
+<tr>
+<td><code>sudo</code></td>
+<td>提权工具</td>
+<td><code>pacman -S sudo</code></td>
+</tr>
+<tr>
+<td><code>grub</code></td>
+<td>引导加载程序</td>
+<td><code>pacman -S grub</code></td>
+</tr>
+<tr>
+<td><code>efibootmgr</code></td>
+<td>EFI 引导管理</td>
+<td><code>pacman -S efibootmgr</code></td>
+</tr>
+</tbody></table>
+<h2 id="2-桌面环境"><a href="#2-桌面环境" class="headerlink" title="2. 桌面环境"></a>2. 桌面环境</h2><h2 id="2-桌面环境-1"><a href="#2-桌面环境-1" class="headerlink" title="2. 桌面环境"></a>2. 桌面环境</h2>
+	
+
+	</div>
+  <a type="button" href="/2026/06/25/arch-install-packages/#more" class="btn btn-default more">Read More</a>
+</div>
+
+-->
+<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Arch-Linux-已安装软件包清单"><a href="#Arch-Linux-已安装软件包清单" class="headerlink" title="Arch Linux 已安装软件包清单"></a>Arch Linux 已安装软件包清单</h1><blockquote>
+<p><strong>系统</strong>: Arch Linux | <strong>内核</strong>: <code>linux 7.0.12.arch1-1</code><br><strong>桌面</strong>: KDE Plasma 6 + niri (Wayland)<br><strong>生成日期</strong>: 2026-06-25</p>
+</blockquote>
+<hr>
+<h2 id="📦-说明"><a href="#📦-说明" class="headerlink" title="📦 说明"></a>📦 说明</h2><ul>
+<li>以下均为 <strong>手动指定安装</strong> 的包（<code>pacman -Qe</code>），不含自动依赖</li>
+<li><code>(AUR)</code> 标记来自 AUR，需用 <code>yay -S</code> 安装</li>
+<li>无标记的为官方仓库包，用 <code>pacman -S</code> 即可</li>
+</ul>
+<hr>
+<h2 id="1-系统核心"><a href="#1-系统核心" class="headerlink" title="1. 系统核心"></a>1. 系统核心</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>base</code></td>
+<td>Arch 最小系统包集</td>
+<td><code>pacman -S base</code></td>
+</tr>
+<tr>
+<td><code>base-devel</code></td>
+<td>基础编译工具（gcc, make 等）</td>
+<td><code>pacman -S base-devel</code></td>
+</tr>
+<tr>
+<td><code>linux</code></td>
+<td>Linux 内核及模块</td>
+<td><code>pacman -S linux</code></td>
+</tr>
+<tr>
+<td><code>linux-firmware</code></td>
+<td>Linux 固件集</td>
+<td><code>pacman -S linux-firmware</code></td>
+</tr>
+<tr>
+<td><code>sudo</code></td>
+<td>提权工具</td>
+<td><code>pacman -S sudo</code></td>
+</tr>
+<tr>
+<td><code>grub</code></td>
+<td>引导加载程序</td>
+<td><code>pacman -S grub</code></td>
+</tr>
+<tr>
+<td><code>efibootmgr</code></td>
+<td>EFI 引导管理</td>
+<td><code>pacman -S efibootmgr</code></td>
+</tr>
+</tbody></table>
+<h2 id="2-桌面环境"><a href="#2-桌面环境" class="headerlink" title="2. 桌面环境"></a>2. 桌面环境</h2><h2 id="2-桌面环境-1"><a href="#2-桌面环境-1" class="headerlink" title="2. 桌面环境"></a>2. 桌面环境</h2>
+	
+	</div>
+  <a type="button" href="/2026/06/25/arch-install-packages/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2025/09/15/centos7-lvm-expansion/" >Centos7 LVM扩容</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2025-09-15  </div>
+		</div>
+	</div>
+	
+
+
+			<!--
+<div class="entry">
+  <div class="row">
+	
+	
+		<p>​	最近在给协会建统一身份认证，为了减少资源浪费，我选了一台在集群里已有的一台跑了很少业务的Centos7，但是中间发现当初分配给这个实例的硬盘只有16G （因为当时就打算跑很小的一个容器） 记录一下我扩容LVM的过程，以后可能还会用到</p>
+<h2 id="1-在Vcenter里给这台虚拟机添加一块硬盘"><a href="#1-在Vcenter里给这台虚拟机添加一块硬盘" class="headerlink" title="1.在Vcenter里给这台虚拟机添加一块硬盘"></a>1.在Vcenter里给这台虚拟机添加一块硬盘</h2><p><img src="https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202509152151239.png" alt="image-20250915215113119"></p>
+<h2 id="2-确认磁盘和分区信息"><a href="#2-确认磁盘和分区信息" class="headerlink" title="2.确认磁盘和分区信息"></a>2.确认磁盘和分区信息</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">fdisk -l          <span class="comment"># 查看磁盘信息</span></span><br><span class="line"><span class="built_in">df</span> -h             <span class="comment"># 查看文件系统使用情况</span></span><br><span class="line">vgdisplay         <span class="comment"># 查看卷组信息</span></span><br><span class="line">lvdisplay         <span class="comment"># 查看逻辑卷信息</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="3-扩展物理卷"><a href="#3-扩展物理卷" class="headerlink" title="3.扩展物理卷"></a>3.扩展物理卷</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pvcreate /dev/sdb           <span class="comment"># 创建新的物理卷</span></span><br><span class="line">vgextend centos /dev/sdb    <span class="comment"># 将新物理卷添加到卷组</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="4-扩展逻辑卷和文件系统"><a href="#4-扩展逻辑卷和文件系统" class="headerlink" title="4.扩展逻辑卷和文件系统"></a>4.扩展逻辑卷和文件系统</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 扩展逻辑卷(将所有可用空间都分配给根分区)</span></span><br><span class="line">lvextend -l +100%FREE /dev/centos/root</span><br><span class="line"></span><br><span class="line"><span class="comment"># xfs文件系统扩展</span></span><br><span class="line">xfs_growfs /dev/centos/root</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-验证扩容结果"><a href="#5-验证扩容结果" class="headerlink" title="5.验证扩容结果"></a>5.验证扩容结果</h2>
+	
+
+	</div>
+  <a type="button" href="/2025/09/15/centos7-lvm-expansion/#more" class="btn btn-default more">Read More</a>
+</div>
+
+-->
+<div class="entry">
+  <div class="row">
+	
+	
+		<p>​	最近在给协会建统一身份认证，为了减少资源浪费，我选了一台在集群里已有的一台跑了很少业务的Centos7，但是中间发现当初分配给这个实例的硬盘只有16G （因为当时就打算跑很小的一个容器） 记录一下我扩容LVM的过程，以后可能还会用到</p>
+<h2 id="1-在Vcenter里给这台虚拟机添加一块硬盘"><a href="#1-在Vcenter里给这台虚拟机添加一块硬盘" class="headerlink" title="1.在Vcenter里给这台虚拟机添加一块硬盘"></a>1.在Vcenter里给这台虚拟机添加一块硬盘</h2><p><img src="https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202509152151239.png" alt="image-20250915215113119"></p>
+<h2 id="2-确认磁盘和分区信息"><a href="#2-确认磁盘和分区信息" class="headerlink" title="2.确认磁盘和分区信息"></a>2.确认磁盘和分区信息</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">fdisk -l          <span class="comment"># 查看磁盘信息</span></span><br><span class="line"><span class="built_in">df</span> -h             <span class="comment"># 查看文件系统使用情况</span></span><br><span class="line">vgdisplay         <span class="comment"># 查看卷组信息</span></span><br><span class="line">lvdisplay         <span class="comment"># 查看逻辑卷信息</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="3-扩展物理卷"><a href="#3-扩展物理卷" class="headerlink" title="3.扩展物理卷"></a>3.扩展物理卷</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pvcreate /dev/sdb           <span class="comment"># 创建新的物理卷</span></span><br><span class="line">vgextend centos /dev/sdb    <span class="comment"># 将新物理卷添加到卷组</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="4-扩展逻辑卷和文件系统"><a href="#4-扩展逻辑卷和文件系统" class="headerlink" title="4.扩展逻辑卷和文件系统"></a>4.扩展逻辑卷和文件系统</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 扩展逻辑卷(将所有可用空间都分配给根分区)</span></span><br><span class="line">lvextend -l +100%FREE /dev/centos/root</span><br><span class="line"></span><br><span class="line"><span class="comment"># xfs文件系统扩展</span></span><br><span class="line">xfs_growfs /dev/centos/root</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-验证扩容结果"><a href="#5-验证扩容结果" class="headerlink" title="5.验证扩容结果"></a>5.验证扩容结果</h2>
+	
+	</div>
+  <a type="button" href="/2025/09/15/centos7-lvm-expansion/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2025/04/07/skillfully-use-feishu-application-to-solve-ac-data-feedback-problem-caused-by-sensitive-permission-chain/" >巧用飞书自建应用解决敏感权限锐捷AC数据反馈问题</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2025-04-07  </div>
+		</div>
+	</div>
+	
+
+
+			<!--
+<div class="entry">
+  <div class="row">
+	
+	
+		<p>​	在日常网络管理工作中，我时常需要网络管理协会同学的协助以应对各类问题。然而，出于严格的安全考量和既定的管理规定，我无法向网管会同学开放 AC（无线接入控制器）的管理权限。但为保证网络运维工作的高效推进，及时将 AC 相关数据反馈给他们又显得尤为必要。为此，我展开了一系列深入探索与研究，最终借助飞书自建应用成功找到了一套行之有效的解决方案。接下来，我将详细阐述这一过程。</p>
+<h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>​	为达成 AC 数据向网管会同学的反馈目标，我起初运用了抓包 AC 管理控制台 登录后生成的 session token 的技术手段，并自主编写 API 接口以实现与飞书机器人的数据交互。然而在实际运行过程中，我很快察觉到该 session token 存在时效性问题，通常在数日后便会过期失效，进而致使数据获取流程中断，影响了信息反馈的持续性和稳定性。</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>​	面对 token 过期导致数据获取中断这个棘手问题，我试着去分析 AC 通信协议和交互流程，还参考了开源社区里不少相关工具。说实话，因为我水平有限，过程特别难，我遇到了各种各样的难题，很多时候都觉得没啥头绪。可能是运气好，最后还真让我摸到了 token 生成的一点规律。下面我就以 Python 为例，给大家分享一下我是怎么动态生成 token 来保证数据稳定获取的，要是有不足的地方，还希望大家多担待。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">gen_hmac_info</span>(<span class="params">ac_ip,ac_user</span>):</span><br><span class="line">	hmac_info_url = <span class="string">f&quot;https://<span class="subst">&#123;ac_ip&#125;</span>/hmac_info.do?user=<span class="subst">&#123;ac_user&#125;</span>&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        hmac_info_response = requests.get(hmac_info_url, verify=<span class="literal">False</span>)</span><br><span class="line">        hmac_info_response.raise_for_status()</span><br><span class="line">    <span class="keyword">except</span> requests.RequestException <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    hmac_info = json.loads(hmac_info_response.text)</span><br><span class="line">    <span class="keyword">return</span> hmac_info</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">gen_ruijie_token</span>(<span class="params">password, hmac_info</span>):</span><br><span class="line">    salt = hmac_info[<span class="string">&quot;salt&quot;</span>].encode()</span><br><span class="line">    iter_count = hmac_info[<span class="string">&quot;iter&quot;</span>]</span><br><span class="line">    key_len = hmac_info[<span class="string">&quot;keylen&quot;</span>]</span><br><span class="line">    <span class="built_in">hash</span> = hashlib.pbkdf2_hmac(<span class="string">&#x27;sha256&#x27;</span>, password.encode(), salt, iter_count, key_len)</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">hash</span>.<span class="built_in">hex</span>()</span><br></pre></td></tr></table></figure>
+
+<h2 id="最终成果"><a href="#最终成果" class="headerlink" title="最终成果"></a>最终成果</h2><p>​	由于当前代码中包含部分敏感信息，尚未完成脱敏处理，出于数据安全与合规性考量，现阶段实际应用代码暂无法对外公开。后续，我计划在完成脱敏及相关处理后，将其发布至 GitHub 平台开源，以便与广大技术爱好者及同行进行交流与分享。在此，仅为大家展示该方案在实际应用中的运行情况与效果呈现 。</p>
+<p><img src="https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202504071218754.png" alt="image-20250407115539803"></p>
+<p><img src="https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202504071218871.png" alt="image-20250407115627867"></p>
+	
+
+	</div>
+  <a type="button" href="/2025/04/07/skillfully-use-feishu-application-to-solve-ac-data-feedback-problem-caused-by-sensitive-permission-chain/#more" class="btn btn-default more">Read More</a>
+</div>
+
+-->
+<div class="entry">
+  <div class="row">
+	
+	
+		<p>​	在日常网络管理工作中，我时常需要网络管理协会同学的协助以应对各类问题。然而，出于严格的安全考量和既定的管理规定，我无法向网管会同学开放 AC（无线接入控制器）的管理权限。但为保证网络运维工作的高效推进，及时将 AC 相关数据反馈给他们又显得尤为必要。为此，我展开了一系列深入探索与研究，最终借助飞书自建应用成功找到了一套行之有效的解决方案。接下来，我将详细阐述这一过程。</p>
+<h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>​	为达成 AC 数据向网管会同学的反馈目标，我起初运用了抓包 AC 管理控制台 登录后生成的 session token 的技术手段，并自主编写 API 接口以实现与飞书机器人的数据交互。然而在实际运行过程中，我很快察觉到该 session token 存在时效性问题，通常在数日后便会过期失效，进而致使数据获取流程中断，影响了信息反馈的持续性和稳定性。</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>​	面对 token 过期导致数据获取中断这个棘手问题，我试着去分析 AC 通信协议和交互流程，还参考了开源社区里不少相关工具。说实话，因为我水平有限，过程特别难，我遇到了各种各样的难题，很多时候都觉得没啥头绪。可能是运气好，最后还真让我摸到了 token 生成的一点规律。下面我就以 Python 为例，给大家分享一下我是怎么动态生成 token 来保证数据稳定获取的，要是有不足的地方，还希望大家多担待。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">gen_hmac_info</span>(<span class="params">ac_ip,ac_user</span>):</span><br><span class="line">	hmac_info_url = <span class="string">f&quot;https://<span class="subst">&#123;ac_ip&#125;</span>/hmac_info.do?user=<span class="subst">&#123;ac_user&#125;</span>&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        hmac_info_response = requests.get(hmac_info_url, verify=<span class="literal">False</span>)</span><br><span class="line">        hmac_info_response.raise_for_status()</span><br><span class="line">    <span class="keyword">except</span> requests.RequestException <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    hmac_info = json.loads(hmac_info_response.text)</span><br><span class="line">    <span class="keyword">return</span> hmac_info</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">gen_ruijie_token</span>(<span class="params">password, hmac_info</span>):</span><br><span class="line">    salt = hmac_info[<span class="string">&quot;salt&quot;</span>].encode()</span><br><span class="line">    iter_count = hmac_info[<span class="string">&quot;iter&quot;</span>]</span><br><span class="line">    key_len = hmac_info[<span class="string">&quot;keylen&quot;</span>]</span><br><span class="line">    <span class="built_in">hash</span> = hashlib.pbkdf2_hmac(<span class="string">&#x27;sha256&#x27;</span>, password.encode(), salt, iter_count, key_len)</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">hash</span>.<span class="built_in">hex</span>()</span><br></pre></td></tr></table></figure>
+
+<h2 id="最终成果"><a href="#最终成果" class="headerlink" title="最终成果"></a>最终成果</h2><p>​	由于当前代码中包含部分敏感信息，尚未完成脱敏处理，出于数据安全与合规性考量，现阶段实际应用代码暂无法对外公开。后续，我计划在完成脱敏及相关处理后，将其发布至 GitHub 平台开源，以便与广大技术爱好者及同行进行交流与分享。在此，仅为大家展示该方案在实际应用中的运行情况与效果呈现 。</p>
+<p><img src="https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202504071218754.png" alt="image-20250407115539803"></p>
+<p><img src="https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202504071218871.png" alt="image-20250407115627867"></p>
+	
+	</div>
+  <a type="button" href="/2025/04/07/skillfully-use-feishu-application-to-solve-ac-data-feedback-problem-caused-by-sensitive-permission-chain/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2024/11/06/implementation-method-of-freeradius-partial-nas-device-local-realm-rejection-authentication/" >FreeRadius 中关于部分网络接入服务器（NAS）设备在匹配相应 realm 时拒绝认证的实现方法。</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2024-11-06  </div>
+		</div>
+	</div>
+	
+
+
+			<!--
+<div class="entry">
+  <div class="row">
+	
+	
+		<p>本方法仅需增添一个判断条件。由于是在 post_auth 阶段进行判断，故会存在正常的认证过程，然而在最终阶段会返回认证失败的结果。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if ((NAS-IP-Address == &quot;x.x.x.x&quot; || NAS-IP-Address == &quot;x.x.x.x&quot;) &amp;&amp; Realm == &quot;xxxxxx.edu.cn&quot;) &#123;</span><br><span class="line">                reject</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将以上内容添加至 sites-enabled&#x2F;default 文件的post-auth 下即可。</p>
+<blockquote>
+<p>[!tip]</p>
+<p>本方法通常应用于高校 eduroam 等建设需求场景下，以禁止本校用户访问本校 eduroam 网络。eduroam 官方文档所介绍的方法会将指定 realm 全部舍弃。而在与锐捷 sam 或卓智 zos 进行搭配时，需要将本校 realm 代理至 sam 和 zos 之上。目前，经过摸索仅得出这一种方法。若有更为优良的方法，恳请各位前辈予以指导</p>
+</blockquote>
+
+	
+
+	</div>
+  <a type="button" href="/2024/11/06/implementation-method-of-freeradius-partial-nas-device-local-realm-rejection-authentication/#more" class="btn btn-default more">Read More</a>
+</div>
+
+-->
+<div class="entry">
+  <div class="row">
+	
+	
+		<p>本方法仅需增添一个判断条件。由于是在 post_auth 阶段进行判断，故会存在正常的认证过程，然而在最终阶段会返回认证失败的结果。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if ((NAS-IP-Address == &quot;x.x.x.x&quot; || NAS-IP-Address == &quot;x.x.x.x&quot;) &amp;&amp; Realm == &quot;xxxxxx.edu.cn&quot;) &#123;</span><br><span class="line">                reject</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将以上内容添加至 sites-enabled&#x2F;default 文件的post-auth 下即可。</p>
+<blockquote>
+<p>[!tip]</p>
+<p>本方法通常应用于高校 eduroam 等建设需求场景下，以禁止本校用户访问本校 eduroam 网络。eduroam 官方文档所介绍的方法会将指定 realm 全部舍弃。而在与锐捷 sam 或卓智 zos 进行搭配时，需要将本校 realm 代理至 sam 和 zos 之上。目前，经过摸索仅得出这一种方法。若有更为优良的方法，恳请各位前辈予以指导</p>
+</blockquote>
+
+	
+	</div>
+  <a type="button" href="/2024/11/06/implementation-method-of-freeradius-partial-nas-device-local-realm-rejection-authentication/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+
+		</div>
+
+		<!-- pagination -->
+		<div>
+  		<center>
+		<div class="pagination">
+
+   
+    
+           <a type="button" class="btn btn-default disabled"><i class="fa fa-arrow-circle-o-left"></i>Prev</a>
+        
+
+        <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+ 
+       <a href="/page/2/" type="button" class="btn btn-default ">Next<i class="fa fa-arrow-circle-o-right"></i></a>     
+        
+
+  
+</div>
+
+  		</center>
+		</div>
+
+		
+		
+	</div> <!-- col-md-9 -->
+
+	
+		<div class="col-md-3">
+	<div id="sidebar">
+	
+			
+	<div class="widget">
+		<h4>Categories</h4>
+		<ul class="tag_box inline list-unstyled">
+		
+			<li><a href="/categories/Linux/">Linux<span>5</span></a></li>
+		
+			<li><a href="/categories/Network/">Network<span>1</span></a></li>
+		
+			<li><a href="/categories/运维/VMware/">VMware<span>2</span></a></li>
+		
+			<li><a href="/categories/网络/硬件调试/">硬件调试<span>1</span></a></li>
+		
+			<li><a href="/categories/Linux/系统运维/">系统运维<span>2</span></a></li>
+		
+			<li><a href="/categories/网络/">网络<span>1</span></a></li>
+		
+			<li><a href="/categories/运维/">运维<span>2</span></a></li>
+		
+			<li><a href="/categories/Linux/问题修复/">问题修复<span>1</span></a></li>
+		
+		</ul>
+	</div>
+
+		
+			
+	<div class="widget">
+		<h4>Tag Cloud</h4>
+		<ul class="tag_box inline list-unstyled">		
+		
+			<li><a href="/tags/系统配置/">系统配置<span>1</span></a></li>
+		
+			<li><a href="/tags/串口调试/">串口调试<span>1</span></a></li>
+		
+			<li><a href="/tags/locale/">locale<span>1</span></a></li>
+		
+			<li><a href="/tags/Ruijie/">Ruijie<span>1</span></a></li>
+		
+			<li><a href="/tags/iSCSI/">iSCSI<span>1</span></a></li>
+		
+			<li><a href="/tags/Linux/">Linux<span>2</span></a></li>
+		
+			<li><a href="/tags/vSphere-Client/">vSphere Client<span>1</span></a></li>
+		
+			<li><a href="/tags/AC/">AC<span>1</span></a></li>
+		
+			<li><a href="/tags/KB311960/">KB311960<span>1</span></a></li>
+		
+			<li><a href="/tags/fontconfig/">fontconfig<span>1</span></a></li>
+		
+			<li><a href="/tags/故障排查/">故障排查<span>2</span></a></li>
+		
+			<li><a href="/tags/交换机/">交换机<span>1</span></a></li>
+		
+			<li><a href="/tags/VIT/">VIT<span>1</span></a></li>
+		
+			<li><a href="/tags/Edge/">Edge<span>1</span></a></li>
+		
+			<li><a href="/tags/SPP/">SPP<span>1</span></a></li>
+		
+			<li><a href="/tags/OAuth2/">OAuth2<span>1</span></a></li>
+		
+			<li><a href="/tags/SSO/">SSO<span>1</span></a></li>
+		
+			<li><a href="/tags/蓝牙/">蓝牙<span>1</span></a></li>
+		
+			<li><a href="/tags/vSAN/">vSAN<span>1</span></a></li>
+		
+			<li><a href="/tags/vCenter/">vCenter<span>1</span></a></li>
+		
+		
+		   <li><a href="/tags">...<span>32</span></a></li>
+		 
+		</ul>
+	</div>
+
+
+		
+			
+<div class="widget">
+  <h4>Recent Posts</h4>
+  <ul class="entry list-unstyled">
+    
+      <li>
+        <a href="/2026/09/15/vsan-virtual-objects-iscsi-orphan-target/" ><i class="fa fa-file-o"></i>vSAN「虚拟对象」页面报&#34;无法提取请求的数据&#34;——一...</a>
+      </li>
+    
+      <li>
+        <a href="/2026/09/15/vsphere-client-login-failed-ws1b-oauth2-client/" ><i class="fa fa-file-o"></i>vSphere Client 登录失败：WS1B OA...</a>
+      </li>
+    
+      <li>
+        <a href="/2026/09/09/lang-fix-fedora/"  title="Fedora 44 上 LANG 被 /etc/profile.d/lang.sh 的 CJK fallback 逻辑强制改为 en_US.UTF-8，并通过 niri-session 的 import-environment 泄漏进 systemd user 环境。本文记录根因分析与 systemd oneshot 覆盖修复方案。" ><i class="fa fa-file-o"></i>LANG 环境变量被强制改为 en_US.UTF-8 ...</a>
+      </li>
+    
+      <li>
+        <a href="/2026/09/08/bt_spp_console_setup/"  title="使用 Bluetooth SPP 协议连接交换机 Console 口进行调试的完整配置过程，包含设备扫描、配对、RFCOMM 连接排错记录。" ><i class="fa fa-file-o"></i>Bluetooth SPP Console 调试交换机...</a>
+      </li>
+    
+      <li>
+        <a href="/2026/09/08/edge-font-fix/"  title="Flatpak 版 Edge 浏览器在系统字体切换为 Noto 后菜单字体显示异常的排查与修复过程，包含 fontconfig 沙箱隔离机制分析。" ><i class="fa fa-file-o"></i>Edge 浏览器菜单字体问题修复记录</a>
+      </li>
+    
+  </ul>
+</div>
+
+		
+			
+<div class="widget">
+	<h4>Links</h4>
+	<ul class="blogroll list-unstyled">
+	
+		<li><i class="false"></i><a href="https://www.lry666.cn/" title="666" target="_blank"]);">哎哦啊歪666</a></li>
+	
+	</ul>
+</div>
+
+
+		
+	</div> <!-- sidebar -->
+</div> <!-- col-md-3 -->
+
+	
+	
+</div> <!-- row-fluid -->
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 q1b0h4n's Blog
+  
+      powered by Hexo</a></a>  
+      <br><br>    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        <span>黑ICP备2022002096号-1</span>
+      </a>
+      <br><br><a href="https://beian.mps.gov.cn/#/query/webSearch?code=23011002000555" style="color:#ffffff;text-decoration:none;padding-left:18px; background:url(https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406081937437.png)no-repeat left center;background-size:17px 17px;" rel= "noreferrer" target="_blank"><span>黑公网安备23011002000555</span></a>
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"superSample":2,"width":180,"height":360,"position":"left","hOffset":20,"vOffset":0},"mobile":{"show":false,"scale":0.5},"react":{"opacityDefault":0.7},"log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+   </html>

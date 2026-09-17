@@ -1,0 +1,356 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>Edge 浏览器菜单字体问题修复记录 | q1b0h4n&#39;s Blog</title>
+  <meta name="author" content="q1b0h4n">
+  
+  <meta name="description" content="Flatpak 版 Edge 浏览器在系统字体切换为 Noto 后菜单字体显示异常的排查与修复过程，包含 fontconfig 沙箱隔离机制分析。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Edge 浏览器菜单字体问题修复记录"/>
+  <meta property="og:site_name" content="q1b0h4n&#39;s Blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">q1b0h4n&#39;s Blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class="fa fa-archive"></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class="fa fa-folder"></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class="fa fa-tags"></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class="fa fa-user"></i>About
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> Edge 浏览器菜单字体问题修复记录</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  
+		 <div class="alert alert-success description">
+			<i class="fa fa-info-circle"></i> Flatpak 版 Edge 浏览器在系统字体切换为 Noto 后菜单字体显示异常的排查与修复过程，包含 fontconfig 沙箱隔离机制分析。
+		 </div> <!-- alert -->
+	  		
+
+	  <h1 id="Edge-浏览器菜单字体问题修复记录"><a href="#Edge-浏览器菜单字体问题修复记录" class="headerlink" title="Edge 浏览器菜单字体问题修复记录"></a>Edge 浏览器菜单字体问题修复记录</h1><p><strong>日期</strong>: 2026-09-08<br><strong>环境</strong>: Fedora 44 (远程 <code>user@192.168.x.x</code>)<br><strong>目标</strong>: 系统全局字体切换为 Noto 后,Edge 浏览器菜单字体仍显示异常</p>
+<hr>
+<h2 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h2><p>系统字体已全部切换为 Noto 系列,但 Edge 浏览器的菜单&#x2F;界面字体仍不正确<br>(渲染为 Noto CJK 变体而非 Noto Sans,观感异常)。</p>
+<h2 id="根因分析"><a href="#根因分析" class="headerlink" title="根因分析"></a>根因分析</h2><p>Edge 以 <strong>Flatpak</strong> 方式安装 (<code>com.microsoft.Edge</code>),运行于沙箱环境中,<br>其 fontconfig 链路与宿主机完全隔离:</p>
+<table>
+<thead>
+<tr>
+<th>隔离点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/etc/fonts/local.conf</code> 不可见</td>
+<td>系统级字体配置不在沙箱挂载路径内</td>
+</tr>
+<tr>
+<td><code>XDG_CONFIG_HOME</code> 被重定向</td>
+<td>沙箱内指向 <code>~/.var/app/com.microsoft.Edge/config</code>,与宿主机 <code>~/.config</code> 隔离</td>
+</tr>
+<tr>
+<td>沙箱字体路径重定义</td>
+<td><code>05-flatpak-fontpath.conf</code> 将字体目录重置为 <code>/run/host/fonts</code> 挂载点</td>
+</tr>
+</tbody></table>
+<p><strong>结果</strong>: 沙箱内 fontconfig 未收到任何 Noto 锁定配置,<br><code>fc-match sans-serif</code> 匹配到 <code>Noto Sans CJK SC</code>(中文变体)而非纯拉丁 <code>Noto Sans</code>。</p>
+<h2 id="修复方案"><a href="#修复方案" class="headerlink" title="修复方案"></a>修复方案</h2><h3 id="1-创建用户级字体锁定配置"><a href="#1-创建用户级字体锁定配置" class="headerlink" title="1. 创建用户级字体锁定配置"></a>1. 创建用户级字体锁定配置</h3><p>宿主机写入 <code>~/.config/fontconfig/fonts.conf</code>(与 <code>/etc/fonts/local.conf</code> 同内容),<br>供沙箱经授权后读取:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/.config/fontconfig</span><br><span class="line"><span class="built_in">cp</span> /tmp/fonts-local.conf ~/.config/fontconfig/fonts.conf</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-授予沙箱读取权限"><a href="#2-授予沙箱读取权限" class="headerlink" title="2. 授予沙箱读取权限"></a>2. 授予沙箱读取权限</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flatpak override --user --filesystem=xdg-config/fontconfig:ro com.microsoft.Edge</span><br></pre></td></tr></table></figure>
+
+<p>权限持久化记录(可通过 <code>flatpak info --show-permissions</code> 确认):<br><code>xdg-config/fontconfig:ro</code></p>
+<h3 id="3-验证沙箱内字体匹配"><a href="#3-验证沙箱内字体匹配" class="headerlink" title="3. 验证沙箱内字体匹配"></a>3. 验证沙箱内字体匹配</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 语法: flatpak run --command=fc-match com.microsoft.Edge &lt;family&gt;</span></span><br><span class="line">flatpak run --<span class="built_in">command</span>=fc-match com.microsoft.Edge sans-serif</span><br><span class="line">flatpak run --<span class="built_in">command</span>=fc-match com.microsoft.Edge monospace</span><br><span class="line">flatpak run --<span class="built_in">command</span>=fc-match com.microsoft.Edge <span class="string">&quot;sans-serif:lang=zh-cn&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="验证结果"><a href="#验证结果" class="headerlink" title="验证结果"></a>验证结果</h2><table>
+<thead>
+<tr>
+<th>检查项</th>
+<th>修复前</th>
+<th>修复后</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sans-serif</code></td>
+<td><code>Noto Sans CJK SC</code> ❌</td>
+<td><code>Noto Sans Regular</code> ✅</td>
+</tr>
+<tr>
+<td><code>sans-serif:lang=zh-cn</code></td>
+<td>—</td>
+<td><code>Noto Sans</code>(中文回退 CJK SC) ✅</td>
+</tr>
+<tr>
+<td><code>monospace</code></td>
+<td><code>Noto Sans CJK SC</code> ❌</td>
+<td><code>Noto Sans Mono Regular</code> ✅</td>
+</tr>
+<tr>
+<td>权限持久化</td>
+<td>无</td>
+<td><code>xdg-config/fontconfig:ro</code> ✅</td>
+</tr>
+</tbody></table>
+<h2 id="用户级-fonts-conf-内容"><a href="#用户级-fonts-conf-内容" class="headerlink" title="用户级 fonts.conf 内容"></a>用户级 fonts.conf 内容</h2><p>锁定全部默认家族为 Noto,中文回退到 CJK SC,emoji 回退到 Noto Color Emoji:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span>?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">fontconfig</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;fonts.dtd&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">fontconfig</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">alias</span> <span class="attr">binding</span>=<span class="string">&quot;strong&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">family</span>&gt;</span>sans-serif<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">prefer</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Sans<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Sans CJK SC<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Color Emoji<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">prefer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">alias</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">alias</span> <span class="attr">binding</span>=<span class="string">&quot;strong&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">family</span>&gt;</span>serif<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">prefer</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Serif<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Serif CJK SC<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Color Emoji<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">prefer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">alias</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">alias</span> <span class="attr">binding</span>=<span class="string">&quot;strong&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">family</span>&gt;</span>monospace<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">prefer</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Sans Mono<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Sans Mono CJK SC<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Color Emoji<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">prefer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">alias</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">alias</span> <span class="attr">binding</span>=<span class="string">&quot;strong&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">family</span>&gt;</span>sans<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">prefer</span>&gt;</span><span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Sans<span class="tag">&lt;/<span class="name">family</span>&gt;</span><span class="tag">&lt;/<span class="name">prefer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">alias</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">alias</span> <span class="attr">binding</span>=<span class="string">&quot;strong&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">family</span>&gt;</span>helvetica<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">prefer</span>&gt;</span><span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Sans<span class="tag">&lt;/<span class="name">family</span>&gt;</span><span class="tag">&lt;/<span class="name">prefer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">alias</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">alias</span> <span class="attr">binding</span>=<span class="string">&quot;strong&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">family</span>&gt;</span>Arial<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">prefer</span>&gt;</span><span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Sans<span class="tag">&lt;/<span class="name">family</span>&gt;</span><span class="tag">&lt;/<span class="name">prefer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">alias</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">alias</span> <span class="attr">binding</span>=<span class="string">&quot;strong&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">family</span>&gt;</span>Courier New<span class="tag">&lt;/<span class="name">family</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">prefer</span>&gt;</span><span class="tag">&lt;<span class="name">family</span>&gt;</span>Noto Sans Mono<span class="tag">&lt;/<span class="name">family</span>&gt;</span><span class="tag">&lt;/<span class="name">prefer</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">alias</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">fontconfig</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注: 系统级 <code>/etc/fonts/local.conf</code> 内容与此相同,覆盖宿主主机应用<br>(包括 dms、Alacritty 等非沙箱应用)。</p>
+</blockquote>
+<h2 id="经验要点"><a href="#经验要点" class="headerlink" title="经验要点"></a>经验要点</h2><ol>
+<li><strong>Flatpak 应用的 fontconfig 与宿主隔离</strong>——宿主机字体配置修改后,<br>沙箱应用(浏览器等)需单独处理,排查时勿被”宿主已生效”误导。</li>
+<li><strong>三个排查关键点</strong>:<ul>
+<li>安装方式(<code>rpm -qa</code> &#x2F; <code>flatpak list</code>)</li>
+<li>沙箱内 <code>XDG_CONFIG_HOME</code> 重定向路径</li>
+<li>沙箱内 fontpath 重置文件 <code>05-flatpak-fontpath.conf</code></li>
+</ul>
+</li>
+<li><strong>通用修复模式</strong>: 用户级 <code>fonts.conf</code> + <code>flatpak override --filesystem=xdg-config/fontconfig:ro</code>,<br>适用于所有 Flatpak 字体异常的应用。</li>
+<li>修改后需<strong>完全重启</strong>目标应用(Chromium 系有字体缓存)。</li>
+</ol>
+
+	  <div class="article-footer-copyright">
+
+    转载时请注明，本篇文章来自 qibohan.com.</a>
+</div>
+
+	</div>
+
+	
+	<span id="/2026/09/08/edge-font-fix/" class="leancloud-visitors view" data-flag-title="Edge 浏览器菜单字体问题修复记录">
+		<em class="post-meta-item-text"> Page View </em> <i class="leancloud-visitors-count"></i>
+	</span>
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a href="/2026/09/08/bt_spp_console_setup/" type="button" class="btn btn-default"><i
+                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/2026/09/07/wemeet-screen-share-fix/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-09-08 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/categories/Linux/">Linux<span>5</span></a></li> <li><a href="/categories/Linux/问题修复/">问题修复<span>1</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/Edge/">Edge<span>1</span></a></li> <li><a href="/tags/字体/">字体<span>1</span></a></li> <li><a href="/tags/Flatpak/">Flatpak<span>1</span></a></li> <li><a href="/tags/fontconfig/">fontconfig<span>1</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 q1b0h4n's Blog
+  
+      powered by Hexo</a></a>  
+      <br><br>    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        <span>黑ICP备2022002096号-1</span>
+      </a>
+      <br><br><a href="https://beian.mps.gov.cn/#/query/webSearch?code=23011002000555" style="color:#ffffff;text-decoration:none;padding-left:18px; background:url(https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406081937437.png)no-repeat left center;background-size:17px 17px;" rel= "noreferrer" target="_blank"><span>黑公网安备23011002000555</span></a>
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"superSample":2,"width":180,"height":360,"position":"left","hOffset":20,"vOffset":0},"mobile":{"show":false,"scale":0.5},"react":{"opacityDefault":0.7},"log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+   </html>

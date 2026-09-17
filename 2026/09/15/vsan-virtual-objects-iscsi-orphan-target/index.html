@@ -1,0 +1,472 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>vSAN「虚拟对象」页面报&#34;无法提取请求的数据&#34;——一个孤儿 iSCSI 目标引发的血案 | q1b0h4n&#39;s Blog</title>
+  <meta name="author" content="q1b0h4n">
+  
+  <meta name="description" content="vSphere Client 里点开 vSAN → 虚拟对象（Virtual Objects），页面不给列表，只甩一句：
+
+无法提取请求的数据。有关详细信息，请查看 vSphere Client 日志
+
+按经验这通常意味着 vSAN 对象健康度出问题。但这次查下去发现集群健康全绿、没有对象降级、20 多台 VM 全部正常运行 —— 问题完全不在存储层。
+真正的元凶是一个孤儿 iSCSI 目标，以及 vSAN UI 插件里一处没做判空的代码。"> 
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="vSAN「虚拟对象」页面报&#34;无法提取请求的数据&#34;——一个孤儿 iSCSI 目标引发的血案"/>
+  <meta property="og:site_name" content="q1b0h4n&#39;s Blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">q1b0h4n&#39;s Blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class="fa fa-archive"></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class="fa fa-folder"></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class="fa fa-tags"></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class="fa fa-user"></i>About
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> vSAN「虚拟对象」页面报&#34;无法提取请求的数据&#34;——一个孤儿 iSCSI 目标引发的血案</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  		
+
+	  <p>vSphere Client 里点开 vSAN → <strong>虚拟对象</strong>（Virtual Objects），页面不给列表，只甩一句：</p>
+<blockquote>
+<p>无法提取请求的数据。有关详细信息，请查看 vSphere Client 日志</p>
+</blockquote>
+<p>按经验这通常意味着 vSAN 对象健康度出问题。但这次查下去发现<strong>集群健康全绿、没有对象降级、20 多台 VM 全部正常运行</strong> —— 问题完全不在存储层。</p>
+<p>真正的元凶是一个<strong>孤儿 iSCSI 目标</strong>，以及 vSAN UI 插件里一处没做判空的代码。</p>
+<span id="more"></span>
+
+<h2 id="一、先排除”老套路”"><a href="#一、先排除”老套路”" class="headerlink" title="一、先排除”老套路”"></a>一、先排除”老套路”</h2><p>这个报错在老环境里最常见的成因是：某台主机磁盘拥塞 → 触发组件重建 → 重建风暴 → Web UI 查询超时。</p>
+<p>所以先按常规流程查一遍：</p>
+<ul>
+<li>集群健康状态（cluster status）</li>
+<li>各主机磁盘 &#x2F; 对象健康度</li>
+<li>是否有降级对象、重建中对象</li>
+</ul>
+<p><strong>结果：全绿。</strong> 三台主机都是 green，没有任何对象降级、没有重建、没有磁盘故障。</p>
+<p>那就说明：<strong>数据面是好的，界面是坏的。</strong> 这是纯 UI 渲染问题。</p>
+<h2 id="二、去-vSphere-Client-日志里捞-JS-堆栈"><a href="#二、去-vSphere-Client-日志里捞-JS-堆栈" class="headerlink" title="二、去 vSphere Client 日志里捞 JS 堆栈"></a>二、去 vSphere Client 日志里捞 JS 堆栈</h2><p>既然前端渲染失败，就直接去看前端日志：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -lat /var/log/vmware/vsphere-ui/logs/</span><br><span class="line">grep -iE <span class="string">&#x27;vsan&#x27;</span> /var/log/vmware/vsphere-ui/logs/*.<span class="built_in">log</span> | grep -iE <span class="string">&#x27;error|exception&#x27;</span> | <span class="built_in">tail</span></span><br></pre></td></tr></table></figure>
+
+<p>一下就捞到了关键堆栈：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">TypeError: Cannot read properties of undefined (reading &#x27;vsanObjectUuid&#x27;)</span><br><span class="line">    at Proxy.buildIscsiTargetModel (main.js)</span><br><span class="line">    at Proxy.buildIscsiTargets</span><br><span class="line">→ Error: 无法提取请求的数据。有关详细信息，请查看 vSphere Client 日志</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意这条日志的价值</strong>：它直接把”vSAN 虚拟对象列表”和”iSCSI Target”这两件看起来无关的事情绑在了一起。</p>
+<p>调用链是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">listVirtualObjects → listObjects → getVirtualObjects → buildIscsiTargets</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、扒插件源码，确认是判空缺失"><a href="#三、扒插件源码，确认是判空缺失" class="headerlink" title="三、扒插件源码，确认是判空缺失"></a>三、扒插件源码，确认是判空缺失</h2><p>vSphere Client 的 vSAN 插件是一个前端 bundle，可以直接从 vCenter 本机拉下来：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">FQDN=$(hostname)</span><br><span class="line">BASE=<span class="string">&quot;https://localhost/plugins/com.vmware.vsan.client~8.0.202.10000~843514146/<span class="variable">$FQDN</span>-443/vsan/plugins/vsan-ui-repa/main.js&quot;</span></span><br><span class="line">curl -sk -H <span class="string">&quot;Host: <span class="variable">$FQDN</span>&quot;</span> -o /tmp/_main.js <span class="string">&quot;<span class="variable">$BASE</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>再从报错信息给的<strong>精确字符偏移</strong>（<code>main.js:1:815462</code>）附近截取代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">d = <span class="built_in">open</span>(<span class="string">&#x27;/tmp/_main.js&#x27;</span>, encoding=<span class="string">&#x27;utf-8&#x27;</span>, errors=<span class="string">&#x27;replace&#x27;</span>).read()</span><br><span class="line">off = <span class="number">815462</span></span><br><span class="line"><span class="built_in">print</span>(d[<span class="built_in">max</span>(<span class="number">0</span>, off - <span class="number">700</span>): off + <span class="number">700</span>])</span><br></pre></td></tr></table></figure>
+
+<p>拿到崩溃点原文：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">buildIscsiTargetModel</span>(<span class="params">v, d, O, _</span>) &#123;</span><br><span class="line">  E = O.<span class="title function_">has</span>(v.<span class="property">objectInformation</span>.<span class="property">vsanObjectUuid</span>)   <span class="comment">// ← v 是 iSCSI 目标</span></span><br><span class="line">      ? O.<span class="title function_">get</span>(...) : <span class="title function_">buildIscsiModel</span>(v.<span class="property">objectInformation</span>, _)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>根因清楚了</strong>：插件假定<strong>每一个 iSCSI 目标都有 <code>objectInformation</code><strong>。只要存在</strong>一个</strong>目标该字段为 <code>undefined</code>，整个”虚拟对象”列表的渲染就全线崩溃，前端只能显示那句含糊的错误。</p>
+<p>而 vSAN 的 API 返回里，确实有一个目标不满足这个假设。</p>
+<h2 id="四、定位具体是哪个目标"><a href="#四、定位具体是哪个目标" class="headerlink" title="四、定位具体是哪个目标"></a>四、定位具体是哪个目标</h2><p>用 vSAN API 列出所有 iSCSI 目标，逐个检查 <code>objectInformation</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">vc_mos = vsanapiutils.GetVsanVcMos(vsanapiutils.GetVsanVcStub(si._stub, context=ctx), context=ctx)</span><br><span class="line">iscsi = vc_mos[<span class="string">&#x27;vsan-cluster-iscsi-target-system&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> t <span class="keyword">in</span> iscsi.GetIscsiTargets(cluster):</span><br><span class="line">    oi = <span class="built_in">getattr</span>(t, <span class="string">&#x27;objectInformation&#x27;</span>, <span class="literal">None</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;alias=%-16s lunCount=%s objectInfo=%s ioOwner=%s&quot;</span> % (</span><br><span class="line">        t.alias, t.lunCount,</span><br><span class="line">        <span class="string">&#x27;None&#x27;</span> <span class="keyword">if</span> oi <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">else</span> oi.vsanObjectUuid,</span><br><span class="line">        t.ioOwnerHost))</span><br></pre></td></tr></table></figure>
+
+<p>结果一目了然：</p>
+<table>
+<thead>
+<tr>
+<th>目标 alias</th>
+<th>ioOwnerHost</th>
+<th>objectInformation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>target-a</td>
+<td><code>host-1006</code> ✓</td>
+<td>✓ healthy</td>
+</tr>
+<tr>
+<td>target-b</td>
+<td><code>host-1006</code> ✓</td>
+<td>✓ healthy</td>
+</tr>
+<tr>
+<td><strong>某个残留目标</strong></td>
+<td><strong>空</strong> ❌</td>
+<td><strong>None</strong> ❌</td>
+</tr>
+<tr>
+<td>target-c</td>
+<td><code>host-1006</code> ✓</td>
+<td>✓ healthy</td>
+</tr>
+</tbody></table>
+<p><strong>就是它。</strong> 一个 I&#x2F;O owner 为空、对象信息丢失的目标。</p>
+<p>继续验证它是不是”孤儿”：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GetIscsiTarget(cluster, &#x27;&lt;alias&gt;&#x27;)</span><br><span class="line">→ vim.fault.VsanFault: Failed to get iSCSI target. Cannot find target &#x27;&lt;alias&gt;&#x27;</span><br></pre></td></tr></table></figure>
+
+<p><strong>列表里能列出来，按名字去取却取不到</strong> —— 连它归属的主机也不认这个目标。典型的<strong>状态残留孤儿</strong>。</p>
+<h2 id="五、尝试删除：撞上死结"><a href="#五、尝试删除：撞上死结" class="headerlink" title="五、尝试删除：撞上死结"></a>五、尝试删除：撞上死结</h2><p>第一反应是把这个残留目标删掉。两条路都试了：</p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>vCenter API <code>RemoveIscsiTarget(cluster, alias)</code></td>
+<td>❌ <code>Util: Cannot find target namespace dir for target &lt;uuid&gt;</code></td>
+</tr>
+<tr>
+<td>主机侧 <code>esxcli vsan iscsi target remove -a &lt;alias&gt;</code></td>
+<td>❌ <strong>完全相同的错误</strong></td>
+</tr>
+</tbody></table>
+<p>（补充一个前置细节：如果目标下还挂着 LUN，会先报 <code>Target &lt;alias&gt; is not empty</code>，需要先 <code>RemoveIscsiLUN(cluster, alias, lunId)</code> 把 LUN 删掉。）</p>
+<p>再去主机侧看这个目标的真实状态：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">esxcli vsan iscsi target list</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Alias        ...  LUNs  Is Compliant  UUID                                  I/O Owner UUID</span><br><span class="line">target-a     ...  1     true          09389065-...                          6569b0ac-...</span><br><span class="line">target-b     ...  0     true          55049465-...                          6569b0ac-...</span><br><span class="line">&lt;问题目标&gt;   ...  0     false         08a3e768-...                          (空)</span><br><span class="line">target-c     ...  0     true          7c331369-...                          6569b0ac-...</span><br></pre></td></tr></table></figure>
+
+<p><strong><code>Is Compliant = false</code> + <code>I/O Owner UUID</code> 为空</strong> —— 问题目标连合规性都不满足了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">esxcli vsan iscsi target get -a &lt;<span class="built_in">alias</span>&gt;</span><br><span class="line"><span class="comment"># → Failed to fetch target owner entry from CMMDS</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>CMMDS 里的 owner 记录丢了，目标的”命名空间目录”也不存在了。</strong></p>
+<p>于是形成死结：<strong>想删</strong>，删除流程第一步就要去找这个命名空间目录，找不到直接报错退出；<strong>想修</strong>，普通管理接口没有任何入口。</p>
+<h2 id="六、找到官方工具：vitRecoveryTool"><a href="#六、找到官方工具：vitRecoveryTool" class="headerlink" title="六、找到官方工具：vitRecoveryTool"></a>六、找到官方工具：vitRecoveryTool</h2><p>翻主机上的 vSAN 工具目录时发现了这个：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> /usr/lib/vmware/vsan/bin/</span><br><span class="line"><span class="comment"># ...</span></span><br><span class="line"><span class="comment"># vitRecoveryTool.pyc</span></span><br><span class="line"><span class="comment"># vitd</span></span><br><span class="line"><span class="comment"># vitsafehd</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>VIT &#x3D; vSAN iSCSI Target。</strong> <code>vitRecoveryTool</code> 正是 VMware 为”VIT 状态损坏”提供的官方恢复工具：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python /usr/lib/vmware/vsan/bin/vitRecoveryTool.pyc --<span class="built_in">help</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">usage: vitRecoveryTool.pyc [-h] [--force] [--dry-run] [--type TYPE] [--target TARGET]</span><br><span class="line"></span><br><span class="line">  --force          USE WITH CAUTION!!! (for homeobject) even without the vit.conf backup,</span><br><span class="line">                   the recovery still proceed(for target)</span><br><span class="line">                   force recovery even if target namespace is accessible</span><br><span class="line">  --dry-run        (for homeobject) Do not perform the recovery, but just generate</span><br><span class="line">                   the vit.conf that will be used for recovery.</span><br><span class="line">  --type TYPE      choose what you need to recover, currently we support</span><br><span class="line">                   &#x27;homeobject&#x27; and &#x27;target&#x27;, default is &#x27;homeobject&#x27;</span><br><span class="line">  --target TARGET  the alias of target namespace that needs to be recover,</span><br><span class="line">                   valid only when --type is set to &#x27;target&#x27;</span><br></pre></td></tr></table></figure>
+
+<h2 id="七、执行恢复（有关键前置条件）"><a href="#七、执行恢复（有关键前置条件）" class="headerlink" title="七、执行恢复（有关键前置条件）"></a>七、执行恢复（有关键前置条件）</h2><p>跑起来后工具先给出一段警告，<strong>这是整个操作里最需要注意的地方</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">NOTE:</span><br><span class="line">YOU SHOULD EXPLICITLY *STOP* VIT SERVICE ON ALL HOSTS IN THIS CLUSTER BY RUN</span><br><span class="line">&quot;/etc/init.d/vitd io_stop&quot; ON EVERY SINGLE HOST IN THIS CLUSTER.</span><br><span class="line">THIS WILL STOP VIT DATA SERVICE.</span><br><span class="line"></span><br><span class="line">A successful execution of this script will:</span><br><span class="line">1) Create new target namespace objects for corrupted targets</span><br><span class="line">2) Modify vit.conf to link the related targets to new target namespace objects</span><br><span class="line">3) Recover all healthy LUNs under these target namespaces.</span><br><span class="line">After a successful run, make sure *START* vitd on all hosts in the cluster.</span><br></pre></td></tr></table></figure>
+
+<h3 id="影响评估（动手前必须做）"><a href="#影响评估（动手前必须做）" class="headerlink" title="影响评估（动手前必须做）"></a>影响评估（动手前必须做）</h3><p>停 VIT 服务会不会影响业务？逐项查证：</p>
+<ul>
+<li><strong>vSAN 数据存储不受影响</strong>。VIT（vSAN iSCSI Target）是<strong>独立服务</strong>，vsanDatastore 上的所有 VM 完全不受波及。</li>
+<li><strong>受影响的只有 iSCSI LUN 的使用方</strong>（会短暂断连几分钟）。</li>
+<li>检查 iSCSI datastore 挂在哪台主机、上面跑着什么 VM —— 确认这些和 VIT 无关。</li>
+</ul>
+<p><strong>结论：可以安全执行，但要让所有相关方知晓那几分钟的 iSCSI 中断。</strong></p>
+<h3 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1) 集群内每台主机：停 VIT 数据服务</span></span><br><span class="line">/etc/init.d/vitd io_stop</span><br><span class="line">/etc/init.d/vitd status</span><br><span class="line"><span class="comment"># 期望：vitd is not running / vitsafehd is not running</span></span><br><span class="line"><span class="comment"># 输出里的 &quot;vit unload successfully&quot; 表示卸载成功</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2) 在任意一台集群主机上执行恢复</span></span><br><span class="line"><span class="built_in">printf</span> <span class="string">&#x27;y\ny\ny\n&#x27;</span> | python /usr/lib/vmware/vsan/bin/vitRecoveryTool.pyc \</span><br><span class="line">  --<span class="built_in">type</span> target --target &lt;<span class="built_in">alias</span>&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3) 集群内每台主机：立刻启动 VIT</span></span><br><span class="line">/etc/init.d/vitd start</span><br><span class="line">/etc/init.d/vitd status</span><br><span class="line"><span class="comment"># 期望：vitd is running / vitsafehd is running</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>⚠️ 必须喂 3 个 <code>y</code></strong> —— 工具有<strong>两次</strong> <code>Continue(Y/y/N/n)</code> 确认，第二次出现在全部检查通过之后。只喂一个会看到：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Continue(Y/y/N/n)[n]: Failed with: EOF when reading a line</span><br></pre></td></tr></table></figure>
+
+<p>这属于”检查已全过、就差确认”，重新跑一遍喂足就行，<strong>不会留下半成品状态</strong>。</p>
+<h3 id="工具的先置检查清单"><a href="#工具的先置检查清单" class="headerlink" title="工具的先置检查清单"></a>工具的先置检查清单</h3><p>正常时应全部为 Y：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Check hostd is alive ................................. Y</span><br><span class="line">Target has related config entry ...................... Y</span><br><span class="line">vSAN is enabled ...................................... Y</span><br><span class="line">Home Object is alive ................................. Y</span><br><span class="line">Home Object is healthy ............................... Y</span><br><span class="line">vit.conf is accessible ............................... Y</span><br><span class="line">vit.conf has valid content ........................... Y</span><br><span class="line">Check if specified target namespace is inaccessible .. Y</span><br><span class="line">vitd is stopped ...................................... Y</span><br><span class="line">vitsafehd is stopped ................................. Y</span><br><span class="line">Checks OK, will proceed with target namespaces recovery</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>中间出现的 <code>clomdb-Cdb_FindNonPreferredFaultDomainId: Failed to find Non-Preferred FD</code> 是<strong>非拉伸集群的正常噪音</strong>，不是错误，忽略即可。</p>
+</blockquote>
+<h3 id="成功输出"><a href="#成功输出" class="headerlink" title="成功输出"></a>成功输出</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Backup vit.conf ..........................................................Success</span><br><span class="line">Remove old target from vit.conf ..........................................Success</span><br><span class="line">Create a new target namespace ............................................Success</span><br><span class="line">Restore vit.conf .........................................................Success</span><br><span class="line">Create all missing vmdk descriptor files under the target ................Success</span><br><span class="line">Replace old target uuid with new target uuid in vit.conf .................Success</span><br><span class="line">Remove backup config file created by this script .........................Success</span><br><span class="line">Target namespace recovery is done. Please run &quot;/etc/init.d/vitd start&quot; on all hosts.</span><br></pre></td></tr></table></figure>
+
+<h2 id="八、验证"><a href="#八、验证" class="headerlink" title="八、验证"></a>八、验证</h2><p>修复前后对比：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>修复前</th>
+<th>修复后</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Is Compliant</code></td>
+<td>❌ false</td>
+<td>✅ <strong>true</strong></td>
+</tr>
+<tr>
+<td><code>I/O Owner UUID</code></td>
+<td>❌ 空</td>
+<td>✅ <code>6569b0ac-...</code>（与正常目标一致）</td>
+</tr>
+<tr>
+<td>目标 UUID</td>
+<td>旧（已丢失）</td>
+<td>✅ <strong>新的 uuid</strong></td>
+</tr>
+<tr>
+<td><code>objectInformation</code></td>
+<td>❌ <strong>None</strong></td>
+<td>✅ 有值</td>
+</tr>
+<tr>
+<td><code>GetIscsiTarget(cluster, alias)</code></td>
+<td>❌ 报错找不到</td>
+<td>✅ 正常返回</td>
+</tr>
+</tbody></table>
+<p><strong><code>objectInformation</code> 不再是 <code>None</code> → UI 插件的 <code>buildIscsiTargetModel</code> 不再崩溃 → “虚拟对象”页面恢复正常。</strong></p>
+<p>其他完整性检查：</p>
+<ul>
+<li>所有 VM 照常运行，数量与操作前一致</li>
+<li>两台主机 <code>vitd</code> + <code>vitsafehd</code> 均已恢复运行</li>
+<li>vSAN 集群全绿</li>
+<li>其余 iSCSI 目标未受影响，原有 LUN 保持 <code>Online</code></li>
+</ul>
+<blockquote>
+<p>小提示：修完后浏览器里的 vSphere Client 建议 <strong>Ctrl+F5 硬刷新</strong>（插件 JS 有缓存）。</p>
+</blockquote>
+<h2 id="九、经验总结"><a href="#九、经验总结" class="headerlink" title="九、经验总结"></a>九、经验总结</h2><h3 id="1-报错信息虽然含糊，但日志里的-JS-堆栈是金子"><a href="#1-报错信息虽然含糊，但日志里的-JS-堆栈是金子" class="headerlink" title="1. 报错信息虽然含糊，但日志里的 JS 堆栈是金子"></a>1. 报错信息虽然含糊，但日志里的 JS 堆栈是金子</h3><p>那句”无法提取请求的数据”本身毫无信息量，但 vSphere Client 日志里的 <code>TypeError</code> 把问题<strong>精确定位到了具体函数</strong>。<strong>遇到前端报错，第一件事是去看前端日志，而不是从底层往上猜。</strong></p>
+<h3 id="2-反直觉的信号要当线索用"><a href="#2-反直觉的信号要当线索用" class="headerlink" title="2. 反直觉的信号要当线索用"></a>2. 反直觉的信号要当线索用</h3><p>“vSAN 虚拟对象页面坏了” → 直觉是存储层问题 → 但<strong>集群健康是全绿的</strong>。这个矛盾点恰恰是最有价值的线索：它告诉你问题在渲染层，不在数据层。</p>
+<h3 id="3-扒源码定位判空-bug，比读一百篇文档快"><a href="#3-扒源码定位判空-bug，比读一百篇文档快" class="headerlink" title="3. 扒源码定位判空 bug，比读一百篇文档快"></a>3. 扒源码定位判空 bug，比读一百篇文档快</h3><p>从报错给的字符偏移直接定位到那一行 <code>O.has(v.objectInformation.vsanObjectUuid)</code>，几分钟就确认了根因。<strong>前端 bundle 就在 vCenter 本机，可以直接 curl 下来分析。</strong></p>
+<h3 id="4-官方工具常常藏在-usr-lib-vmware-lt-组件-gt-bin"><a href="#4-官方工具常常藏在-usr-lib-vmware-lt-组件-gt-bin" class="headerlink" title="4. 官方工具常常藏在 /usr/lib/vmware/&lt;组件&gt;/bin/"></a>4. 官方工具常常藏在 <code>/usr/lib/vmware/&lt;组件&gt;/bin/</code></h3><p><code>vitRecoveryTool.pyc</code> 不是常规管理命令，<code>esxcli</code> 里也没有。它就在工具目录里躺着。<strong>遇到”官方 API 走不通”的死结，先去翻各组件自带的工具目录。</strong></p>
+<h3 id="5-“删不掉”不等于”修不好”"><a href="#5-“删不掉”不等于”修不好”" class="headerlink" title="5. “删不掉”不等于”修不好”"></a>5. “删不掉”不等于”修不好”</h3><p>原目标是想删掉这个残留记录，但删除路径依赖的命名空间目录已不存在，形成死结。官方工具的解法不是”强行删除”，而是<strong>把命名空间重建出来</strong> —— 目标恢复合规后，UI 恢复正常；此时若还想删，也能正常删掉了。</p>
+<p><strong>修复优先于删除。</strong></p>
+<h3 id="6-破坏性操作前把影响面查清楚"><a href="#6-破坏性操作前把影响面查清楚" class="headerlink" title="6. 破坏性操作前把影响面查清楚"></a>6. 破坏性操作前把影响面查清楚</h3><p>停 VIT 服务前，逐项确认了：vSAN 数据存储不受影响（独立服务）、受影响的只有 iSCSI LUN 使用方、iSCSI datastore 与服务无关。<strong>把这些查清楚了，才敢动手停服务。</strong></p>
+<h3 id="7-顺手记下几个-API-参数坑"><a href="#7-顺手记下几个-API-参数坑" class="headerlink" title="7. 顺手记下几个 API 参数坑"></a>7. 顺手记下几个 API 参数坑</h3><ul>
+<li><code>GetIscsiLUNs(cluster, targetAliases)</code> 第二个参数是<strong>字符串列表</strong> <code>[&#39;alias&#39;]</code>，传单个对象会报 <code>not iterable</code>，传列表里的对象会报 <code>expected type str</code></li>
+<li>删除目标前必须先删 LUN，否则报 <code>Target &lt;alias&gt; is not empty</code></li>
+<li><code>RemoveIscsiTarget</code> &#x2F; <code>RemoveIscsiLUN</code> 返回的是 Task，需要等待任务完成</li>
+</ul>
+<h2 id="十、一句话复盘"><a href="#十、一句话复盘" class="headerlink" title="十、一句话复盘"></a>十、一句话复盘</h2><p><strong>存储全绿、VM 全好、界面报错”无法提取数据”</strong> —— 这种矛盾组合大概率是前端插件被某条异常数据噎住了。这次是一条损坏的 vSAN iSCSI 目标记录，让一个没做判空的 JS 函数掀翻了整个页面。定位靠日志堆栈，修复靠官方工具，<strong>前提是把影响面查清楚再动手。</strong></p>
+
+	  <div class="article-footer-copyright">
+
+    转载时请注明，本篇文章来自 qibohan.com.</a>
+</div>
+
+	</div>
+
+	
+	<span id="/2026/09/15/vsan-virtual-objects-iscsi-orphan-target/" class="leancloud-visitors view" data-flag-title="vSAN「虚拟对象」页面报&#34;无法提取请求的数据&#34;——一个孤儿 iSCSI 目标引发的血案">
+		<em class="post-meta-item-text"> Page View </em> <i class="leancloud-visitors-count"></i>
+	</span>
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a type="button" class="btn btn-default disabled"><i class="fa fa-arrow-circle-o-left"></i>Prev</a>
+    
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/2026/09/15/vsphere-client-login-failed-ws1b-oauth2-client/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-09-15 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/categories/运维/">运维<span>2</span></a></li> <li><a href="/categories/运维/VMware/">VMware<span>2</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/vSAN/">vSAN<span>1</span></a></li> <li><a href="/tags/iSCSI/">iSCSI<span>1</span></a></li> <li><a href="/tags/VIT/">VIT<span>1</span></a></li> <li><a href="/tags/vSphere-Client/">vSphere Client<span>1</span></a></li> <li><a href="/tags/故障排查/">故障排查<span>2</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 q1b0h4n's Blog
+  
+      powered by Hexo</a></a>  
+      <br><br>    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        <span>黑ICP备2022002096号-1</span>
+      </a>
+      <br><br><a href="https://beian.mps.gov.cn/#/query/webSearch?code=23011002000555" style="color:#ffffff;text-decoration:none;padding-left:18px; background:url(https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406081937437.png)no-repeat left center;background-size:17px 17px;" rel= "noreferrer" target="_blank"><span>黑公网安备23011002000555</span></a>
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"superSample":2,"width":180,"height":360,"position":"left","hOffset":20,"vOffset":0},"mobile":{"show":false,"scale":0.5},"react":{"opacityDefault":0.7},"log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+   </html>

@@ -1,0 +1,355 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>LANG 环境变量被强制改为 en_US.UTF-8 问题排查与修复 | q1b0h4n&#39;s Blog</title>
+  <meta name="author" content="q1b0h4n">
+  
+  <meta name="description" content="Fedora 44 上 LANG 被 /etc/profile.d/lang.sh 的 CJK fallback 逻辑强制改为 en_US.UTF-8，并通过 niri-session 的 import-environment 泄漏进 systemd user 环境。本文记录根因分析与 systemd oneshot 覆盖修复方案。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="LANG 环境变量被强制改为 en_US.UTF-8 问题排查与修复"/>
+  <meta property="og:site_name" content="q1b0h4n&#39;s Blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">q1b0h4n&#39;s Blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class="fa fa-archive"></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class="fa fa-folder"></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class="fa fa-tags"></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class="fa fa-user"></i>About
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> LANG 环境变量被强制改为 en_US.UTF-8 问题排查与修复</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  
+		 <div class="alert alert-success description">
+			<i class="fa fa-info-circle"></i> Fedora 44 上 LANG 被 /etc/profile.d/lang.sh 的 CJK fallback 逻辑强制改为 en_US.UTF-8，并通过 niri-session 的 import-environment 泄漏进 systemd user 环境。本文记录根因分析与 systemd oneshot 覆盖修复方案。
+		 </div> <!-- alert -->
+	  		
+
+	  <h1 id="LANG-环境变量被强制改为-en-US-UTF-8-问题排查与修复"><a href="#LANG-环境变量被强制改为-en-US-UTF-8-问题排查与修复" class="headerlink" title="LANG 环境变量被强制改为 en_US.UTF-8 问题排查与修复"></a>LANG 环境变量被强制改为 en_US.UTF-8 问题排查与修复</h1><blockquote>
+<p>主机：Fedora 44 (qbh-x220) · 用户：qibohan · 修复日期：2026-09-09</p>
+</blockquote>
+<hr>
+<h2 id="一、问题现象"><a href="#一、问题现象" class="headerlink" title="一、问题现象"></a>一、问题现象</h2><p>桌面环境（niri + systemd user 环境）中 <code>LANG</code> 显示为 <code>en_US.UTF-8</code>，而不是预期的 <code>zh_CN.UTF-8</code>。</p>
+<p>导致中文环境变量丢失，影响：</p>
+<ul>
+<li>应用程序界面语言（切换为英文）</li>
+<li>中文 locale 相关的排序、日期、分词行为</li>
+</ul>
+<hr>
+<h2 id="二、根因分析"><a href="#二、根因分析" class="headerlink" title="二、根因分析"></a>二、根因分析</h2><h3 id="1-罪魁祸首：-etc-profile-d-lang-sh-的-CJK-fallback-逻辑"><a href="#1-罪魁祸首：-etc-profile-d-lang-sh-的-CJK-fallback-逻辑" class="headerlink" title="1. 罪魁祸首：/etc/profile.d/lang.sh 的 CJK fallback 逻辑"></a>1. 罪魁祸首：<code>/etc/profile.d/lang.sh</code> 的 CJK fallback 逻辑</h3><p>Fedora 的 <code>/etc/profile.d/lang.sh</code> 中包含专门针对<strong>虚拟终端</strong>（VT &#x2F; console）的 LANG 修正逻辑：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># The $&#123;LANG&#125; manipulation is necessary only in virtual terminal (a.k.a. console - /dev/tty*):</span></span><br><span class="line"><span class="keyword">if</span> [ -n <span class="string">&quot;<span class="variable">$&#123;LANG&#125;</span>&quot;</span> ] &amp;&amp; [ <span class="string">&quot;<span class="variable">$&#123;TERM&#125;</span>&quot;</span> = <span class="string">&#x27;linux&#x27;</span> ] &amp;&amp; /usr/bin/tty | /usr/bin/grep --quiet -e <span class="string">&#x27;/dev/tty&#x27;</span>; <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">if</span> /usr/bin/grep --quiet -E -i -e <span class="string">&#x27;^.+\.utf-?8$&#x27;</span> &lt;&lt;&lt; <span class="string">&quot;<span class="variable">$&#123;LANG&#125;</span>&quot;</span>; <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">case</span> <span class="variable">$&#123;LANG&#125;</span> <span class="keyword">in</span></span><br><span class="line">            ja*)    LANG=en_US.UTF-8 ;;</span><br><span class="line">            ko*)    LANG=en_US.UTF-8 ;;</span><br><span class="line">            si*)    LANG=en_US.UTF-8 ;;</span><br><span class="line">            zh*)    LANG=en_US.UTF-8 ;;      <span class="comment"># ← 中文被强制改成 en_US</span></span><br><span class="line">            ar*)    LANG=en_US.UTF-8 ;;</span><br><span class="line">            fa*)    LANG=en_US.UTF-8 ;;</span><br><span class="line">            he*)    LANG=en_US.UTF-8 ;;</span><br><span class="line">            ...</span><br></pre></td></tr></table></figure>
+
+<p><strong>触发条件（三个同时满足才生效）：</strong></p>
+<ol>
+<li><code>LANG</code> 变量非空（且是 <code>.utf-8</code> 格式）</li>
+<li><code>TERM = linux</code>（虚拟终端专用 TERM）</li>
+<li>当前 tty 是 <code>/dev/tty*</code>（true VT &#x2F; console，不是 ssh 的 pty）</li>
+</ol>
+<p>这是 Fedora 的<strong>设计行为</strong>：CJK 字符集在 Linux 控制台（无图形环境）下无法正常渲染，所以强制回退到 <code>en_US.UTF-8</code> 以保证 console 可用。</p>
+<h3 id="2-泄漏链路：为什么桌面环境也被污染"><a href="#2-泄漏链路：为什么桌面环境也被污染" class="headerlink" title="2. 泄漏链路：为什么桌面环境也被污染"></a>2. 泄漏链路：为什么桌面环境也被污染</h3><p>正常情况下，登录进图形会话（Wayland&#x2F;niri）后，桌面进程的 LANG 应由 <strong>display manager &#x2F; session 启动器</strong> 注入，而不是走 <code>lang.sh</code>。</p>
+<p>但当时的链路是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">niri-session 启动 → systemctl --user import-environment → </span><br><span class="line">把 niri 进程的环境导入 systemd user 环境</span><br></pre></td></tr></table></figure>
+<p>如果 niri 启动时（或其上游）恰好经过了一个 <code>TERM=linux</code> + <code>/dev/tty*</code> 的登录路径，<code>lang.sh</code> 就把 LANG 改成了 <code>en_US.UTF-8</code>，并随之导入 systemd user 环境 → 所有由 systemd user 启动的桌面应用都继承到错误的 LANG。</p>
+<hr>
+<h2 id="三、排查过程摘要"><a href="#三、排查过程摘要" class="headerlink" title="三、排查过程摘要"></a>三、排查过程摘要</h2><table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>检查项</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><code>echo $LANG</code>（交互 shell）</td>
+<td>表现为 <code>en_US.UTF-8</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>/etc/profile.d/lang.sh</code> 源码审查</td>
+<td>找到 <code>zh* → en_US.UTF-8</code> fallback</td>
+</tr>
+<tr>
+<td>3</td>
+<td>确认触发条件</td>
+<td><code>TERM=linux</code> + <code>/dev/tty*</code> 同时成立</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>~/.config/environment.d/</code> 检查</td>
+<td>存在但优先级低于 <code>import-environment</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>systemd user 环境变量（<code>systemctl --user show-environment</code>）</td>
+<td>LANG 已被污染为 <code>en_US.UTF-8</code></td>
+</tr>
+</tbody></table>
+<p><strong>关键发现：</strong> <code>niri-session</code> 的 <code>import-environment</code> 注入优先级 <strong>高于</strong> <code>environment.d</code>，所以光靠 <code>environment.d/xx-lang.conf</code> 无法覆盖，必须在 systemd user 层面修正。</p>
+<hr>
+<h2 id="四、解决方案"><a href="#四、解决方案" class="headerlink" title="四、解决方案"></a>四、解决方案</h2><p>创建 systemd user 服务，在 <strong>niri 启动前</strong> 显式把 LANG 覆盖回 <code>zh_CN.UTF-8</code>：</p>
+<h3 id="文件：-config-systemd-user-fix-lang-service"><a href="#文件：-config-systemd-user-fix-lang-service" class="headerlink" title="文件：~/.config/systemd/user/fix-lang.service"></a>文件：<code>~/.config/systemd/user/fix-lang.service</code></h3><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span></span><br><span class="line"><span class="attr">Description</span>=Override LANG to zh_CN.UTF-<span class="number">8</span> in systemd user environment</span><br><span class="line"><span class="comment"># 在 niri 启动前执行(import-environment 之后), 覆盖 lang.sh fallback 泄漏的 en_US</span></span><br><span class="line"><span class="attr">Before</span>=niri.service</span><br><span class="line"><span class="attr">PartOf</span>=niri.service</span><br><span class="line"></span><br><span class="line"><span class="section">[Service]</span></span><br><span class="line"><span class="attr">Type</span>=<span class="literal">on</span>eshot</span><br><span class="line"><span class="attr">RemainAfterExit</span>=<span class="literal">yes</span></span><br><span class="line"><span class="attr">ExecStart</span>=/usr/bin/systemctl --user set-environment LANG=zh_CN.UTF-<span class="number">8</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Install]</span></span><br><span class="line"><span class="attr">WantedBy</span>=graphical-session.target</span><br></pre></td></tr></table></figure>
+
+<h3 id="启用命令"><a href="#启用命令" class="headerlink" title="启用命令"></a>启用命令</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl --user daemon-reload</span><br><span class="line">systemctl --user <span class="built_in">enable</span> --now fix-lang.service</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、验证结果"><a href="#五、验证结果" class="headerlink" title="五、验证结果"></a>五、验证结果</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 服务状态</span></span><br><span class="line">systemctl --user status fix-lang.service</span><br><span class="line"><span class="comment"># → Active: active (exited) · ExecStart 状态 SUCCESS</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. systemd user 环境</span></span><br><span class="line">systemctl --user show-environment | grep LANG</span><br><span class="line"><span class="comment"># → LANG=zh_CN.UTF-8</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. systemd-run 启动的进程也继承正确值</span></span><br><span class="line">systemd-run --user --scope bash -c <span class="string">&#x27;echo $LANG&#x27;</span></span><br><span class="line"><span class="comment"># → zh_CN.UTF-8</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 当前 shell</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$LANG</span></span><br><span class="line"><span class="comment"># → zh_CN.UTF-8</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>均验证通过，桌面应用恢复中文环境。</strong></p>
+<hr>
+<h2 id="六、要点总结"><a href="#六、要点总结" class="headerlink" title="六、要点总结"></a>六、要点总结</h2><ol>
+<li>**不要改 <code>/etc/profile.d/lang.sh</code>**：那是 Fedora 对 Linux console 的正确保护（CJK 在 VT 下无法渲染），改它会影响 console 可用性，且会被系统更新覆盖。</li>
+<li>**不要只靠 <code>~/.config/environment.d/</code>**：在该机器上，<code>niri-session</code> 的 <code>import-environment</code> 优先级更高，会覆盖 environment.d 的注入。</li>
+<li><strong>正确做法</strong>：在 systemd user 环境层创建一个 oneshot service，在图形会话启动链中（早于 niri）用 <code>systemctl --user set-environment</code> 强制覆盖——这样所有由 systemd user 环境派生的进程（桌面应用、托盘、后台服务）都拿到正确的 LANG。</li>
+<li>该方案对 systemd user 环境改对环境变量后<strong>无需重启</strong>，下次 <code>niri-session</code> 启动即自动生效；当前会话也已即时生效。</li>
+</ol>
+
+	  <div class="article-footer-copyright">
+
+    转载时请注明，本篇文章来自 qibohan.com.</a>
+</div>
+
+	</div>
+
+	
+	<span id="/2026/09/09/lang-fix-fedora/" class="leancloud-visitors view" data-flag-title="LANG 环境变量被强制改为 en_US.UTF-8 问题排查与修复">
+		<em class="post-meta-item-text"> Page View </em> <i class="leancloud-visitors-count"></i>
+	</span>
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a href="/2026/09/15/vsphere-client-login-failed-ws1b-oauth2-client/" type="button" class="btn btn-default"><i
+                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/2026/09/08/bt_spp_console_setup/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-09-09 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/categories/Linux/">Linux<span>5</span></a></li> <li><a href="/categories/Linux/系统运维/">系统运维<span>2</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/Fedora/">Fedora<span>1</span></a></li> <li><a href="/tags/LANG/">LANG<span>1</span></a></li> <li><a href="/tags/locale/">locale<span>1</span></a></li> <li><a href="/tags/systemd/">systemd<span>1</span></a></li> <li><a href="/tags/环境变量/">环境变量<span>1</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 q1b0h4n's Blog
+  
+      powered by Hexo</a></a>  
+      <br><br>    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        <span>黑ICP备2022002096号-1</span>
+      </a>
+      <br><br><a href="https://beian.mps.gov.cn/#/query/webSearch?code=23011002000555" style="color:#ffffff;text-decoration:none;padding-left:18px; background:url(https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406081937437.png)no-repeat left center;background-size:17px 17px;" rel= "noreferrer" target="_blank"><span>黑公网安备23011002000555</span></a>
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"superSample":2,"width":180,"height":360,"position":"left","hOffset":20,"vOffset":0},"mobile":{"show":false,"scale":0.5},"react":{"opacityDefault":0.7},"log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+   </html>

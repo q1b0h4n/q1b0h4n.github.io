@@ -1,0 +1,287 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>巧用飞书自建应用解决敏感权限锐捷AC数据反馈问题 | q1b0h4n&#39;s Blog</title>
+  <meta name="author" content="q1b0h4n">
+  
+  <meta name="description" content="​	在日常网络管理工作中，我时常需要网络管理协会同学的协助以应对各类问题。然而，出于严格的安全考量和既定的管理规定，我无法向网管会同学开放 AC（无线接入控制器）的管理权限。但为保证网络运维工作的高效推进，及时将 AC 相关数据反馈给他们又显得尤为必要。为此，我展开了一系列深入探索与研究，最终借助飞书自建应用成功找到了一套行之有效的解决方案。接下来，我将详细阐述这一过程。
+问题背景​	为达成 AC 数据向网管会同学的反馈目标，我起初运用了抓包 AC 管理控制台 登录后生成的 session token 的技术手段，并自主编写 API 接口以实现与飞书机器人的数据交互。然而在实际运行过程中，我很快察觉到该 session token 存在时效性问题，通常在数日后便会过期失效，进而致使数据获取流程中断，影响了信息反馈的持续性和稳定性。
+解决方案​	面对 token 过期导致数据获取中断这个棘手问题，我试着去分析 AC 通信协议和交互流程，还参考了开源社区里不少相关工具。说实话，因为我水平有限，过程特别难，我遇到了各种各样的难题，很多时候都觉得没啥头绪。可能是运气好，最后还真让我摸到了 token 生成的一点规律。下面我就以 Python 为例，给大家分享一下我是怎么动态生成 token 来保证数据稳定获取的，要是有不足的地方，还希望大家多担待。
+12345678910111213141516def gen_hmac_info(ac_ip,ac_user):	hmac_info_url = f&amp;quot;https://&amp;#123;ac_ip&amp;#125;/hmac_info.do?user=&amp;#123;ac_user&amp;#125;&amp;quot;    try:        hmac_info_response = requests.get(hmac_info_url, verify=False)        hmac_info_response.raise_for_status()    except requests.RequestException as e:        print(e)        continue    hmac_info = json.loads(hmac_info_response.text)    return hmac_infodef gen_ruijie_token(password, hmac_info):    salt = hmac_info[&amp;quot;salt&amp;quot;].encode()    iter_count = hmac_info[&amp;quot;iter&amp;quot;]    key_len = hmac_info[&amp;quot;keylen&amp;quot;]    hash = hashlib.pbkdf2_hmac(&amp;#x27;sha256&amp;#x27;, password.encode(), salt, iter_count, key_len)    return hash.hex()
+
+最终成果​	由于当前代码中包含部分敏感信息，尚未完成脱敏处理，出于数据安全与合规性考量，现阶段实际应用代码暂无法对外公开。后续，我计划在完成脱敏及相关处理后，将其发布至 GitHub 平台开源，以便与广大技术爱好者及同行进行交流与分享。在此，仅为大家展示该方案在实际应用中的运行情况与效果呈现 。"> 
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="巧用飞书自建应用解决敏感权限锐捷AC数据反馈问题"/>
+  <meta property="og:site_name" content="q1b0h4n&#39;s Blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">q1b0h4n&#39;s Blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class="fa fa-archive"></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class="fa fa-folder"></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class="fa fa-tags"></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class="fa fa-user"></i>About
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> 巧用飞书自建应用解决敏感权限锐捷AC数据反馈问题</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  		
+
+	  <p>​	在日常网络管理工作中，我时常需要网络管理协会同学的协助以应对各类问题。然而，出于严格的安全考量和既定的管理规定，我无法向网管会同学开放 AC（无线接入控制器）的管理权限。但为保证网络运维工作的高效推进，及时将 AC 相关数据反馈给他们又显得尤为必要。为此，我展开了一系列深入探索与研究，最终借助飞书自建应用成功找到了一套行之有效的解决方案。接下来，我将详细阐述这一过程。</p>
+<h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>​	为达成 AC 数据向网管会同学的反馈目标，我起初运用了抓包 AC 管理控制台 登录后生成的 session token 的技术手段，并自主编写 API 接口以实现与飞书机器人的数据交互。然而在实际运行过程中，我很快察觉到该 session token 存在时效性问题，通常在数日后便会过期失效，进而致使数据获取流程中断，影响了信息反馈的持续性和稳定性。</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>​	面对 token 过期导致数据获取中断这个棘手问题，我试着去分析 AC 通信协议和交互流程，还参考了开源社区里不少相关工具。说实话，因为我水平有限，过程特别难，我遇到了各种各样的难题，很多时候都觉得没啥头绪。可能是运气好，最后还真让我摸到了 token 生成的一点规律。下面我就以 Python 为例，给大家分享一下我是怎么动态生成 token 来保证数据稳定获取的，要是有不足的地方，还希望大家多担待。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">gen_hmac_info</span>(<span class="params">ac_ip,ac_user</span>):</span><br><span class="line">	hmac_info_url = <span class="string">f&quot;https://<span class="subst">&#123;ac_ip&#125;</span>/hmac_info.do?user=<span class="subst">&#123;ac_user&#125;</span>&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        hmac_info_response = requests.get(hmac_info_url, verify=<span class="literal">False</span>)</span><br><span class="line">        hmac_info_response.raise_for_status()</span><br><span class="line">    <span class="keyword">except</span> requests.RequestException <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    hmac_info = json.loads(hmac_info_response.text)</span><br><span class="line">    <span class="keyword">return</span> hmac_info</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">gen_ruijie_token</span>(<span class="params">password, hmac_info</span>):</span><br><span class="line">    salt = hmac_info[<span class="string">&quot;salt&quot;</span>].encode()</span><br><span class="line">    iter_count = hmac_info[<span class="string">&quot;iter&quot;</span>]</span><br><span class="line">    key_len = hmac_info[<span class="string">&quot;keylen&quot;</span>]</span><br><span class="line">    <span class="built_in">hash</span> = hashlib.pbkdf2_hmac(<span class="string">&#x27;sha256&#x27;</span>, password.encode(), salt, iter_count, key_len)</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">hash</span>.<span class="built_in">hex</span>()</span><br></pre></td></tr></table></figure>
+
+<h2 id="最终成果"><a href="#最终成果" class="headerlink" title="最终成果"></a>最终成果</h2><p>​	由于当前代码中包含部分敏感信息，尚未完成脱敏处理，出于数据安全与合规性考量，现阶段实际应用代码暂无法对外公开。后续，我计划在完成脱敏及相关处理后，将其发布至 GitHub 平台开源，以便与广大技术爱好者及同行进行交流与分享。在此，仅为大家展示该方案在实际应用中的运行情况与效果呈现 。</p>
+<p><img src="https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202504071218754.png" alt="image-20250407115539803"></p>
+<p><img src="https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202504071218871.png" alt="image-20250407115627867"></p>
+<p><img src="https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202504071218758.png" alt="image-20250407115824959"></p>
+
+	  <div class="article-footer-copyright">
+
+    转载时请注明，本篇文章来自 qibohan.com.</a>
+</div>
+
+	</div>
+
+	
+	<span id="/2025/04/07/skillfully-use-feishu-application-to-solve-ac-data-feedback-problem-caused-by-sensitive-permission-chain/" class="leancloud-visitors view" data-flag-title="巧用飞书自建应用解决敏感权限锐捷AC数据反馈问题">
+		<em class="post-meta-item-text"> Page View </em> <i class="leancloud-visitors-count"></i>
+	</span>
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a href="/2025/09/15/centos7-lvm-expansion/" type="button" class="btn btn-default"><i
+                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/2024/11/06/implementation-method-of-freeradius-partial-nas-device-local-realm-rejection-authentication/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2025-04-07 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/categories/Network/">Network<span>1</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/Network/">Network<span>1</span></a></li> <li><a href="/tags/Ruijie/">Ruijie<span>1</span></a></li> <li><a href="/tags/AC/">AC<span>1</span></a></li> <li><a href="/tags/develop/">develop<span>1</span></a></li> <li><a href="/tags/Python/">Python<span>1</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 q1b0h4n's Blog
+  
+      powered by Hexo</a></a>  
+      <br><br>    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        <span>黑ICP备2022002096号-1</span>
+      </a>
+      <br><br><a href="https://beian.mps.gov.cn/#/query/webSearch?code=23011002000555" style="color:#ffffff;text-decoration:none;padding-left:18px; background:url(https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406081937437.png)no-repeat left center;background-size:17px 17px;" rel= "noreferrer" target="_blank"><span>黑公网安备23011002000555</span></a>
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"superSample":2,"width":180,"height":360,"position":"left","hOffset":20,"vOffset":0},"mobile":{"show":false,"scale":0.5},"react":{"opacityDefault":0.7},"log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+   </html>

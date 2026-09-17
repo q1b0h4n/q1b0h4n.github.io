@@ -1,0 +1,872 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>Arch Linux 已安装软件包清单 | q1b0h4n&#39;s Blog</title>
+  <meta name="author" content="q1b0h4n">
+  
+  <meta name="description" content="Arch Linux 系统手动安装的软件包完整清单，包含官方仓库和 AUR 包，附带一键重装脚本。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Arch Linux 已安装软件包清单"/>
+  <meta property="og:site_name" content="q1b0h4n&#39;s Blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">q1b0h4n&#39;s Blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class="fa fa-archive"></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class="fa fa-folder"></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class="fa fa-tags"></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class="fa fa-user"></i>About
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> Arch Linux 已安装软件包清单</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  
+		 <div class="alert alert-success description">
+			<i class="fa fa-info-circle"></i> Arch Linux 系统手动安装的软件包完整清单，包含官方仓库和 AUR 包，附带一键重装脚本。
+		 </div> <!-- alert -->
+	  		
+
+	  <h1 id="Arch-Linux-已安装软件包清单"><a href="#Arch-Linux-已安装软件包清单" class="headerlink" title="Arch Linux 已安装软件包清单"></a>Arch Linux 已安装软件包清单</h1><blockquote>
+<p><strong>系统</strong>: Arch Linux | <strong>内核</strong>: <code>linux 7.0.12.arch1-1</code><br><strong>桌面</strong>: KDE Plasma 6 + niri (Wayland)<br><strong>生成日期</strong>: 2026-06-25</p>
+</blockquote>
+<hr>
+<h2 id="📦-说明"><a href="#📦-说明" class="headerlink" title="📦 说明"></a>📦 说明</h2><ul>
+<li>以下均为 <strong>手动指定安装</strong> 的包（<code>pacman -Qe</code>），不含自动依赖</li>
+<li><code>(AUR)</code> 标记来自 AUR，需用 <code>yay -S</code> 安装</li>
+<li>无标记的为官方仓库包，用 <code>pacman -S</code> 即可</li>
+</ul>
+<hr>
+<h2 id="1-系统核心"><a href="#1-系统核心" class="headerlink" title="1. 系统核心"></a>1. 系统核心</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>base</code></td>
+<td>Arch 最小系统包集</td>
+<td><code>pacman -S base</code></td>
+</tr>
+<tr>
+<td><code>base-devel</code></td>
+<td>基础编译工具（gcc, make 等）</td>
+<td><code>pacman -S base-devel</code></td>
+</tr>
+<tr>
+<td><code>linux</code></td>
+<td>Linux 内核及模块</td>
+<td><code>pacman -S linux</code></td>
+</tr>
+<tr>
+<td><code>linux-firmware</code></td>
+<td>Linux 固件集</td>
+<td><code>pacman -S linux-firmware</code></td>
+</tr>
+<tr>
+<td><code>sudo</code></td>
+<td>提权工具</td>
+<td><code>pacman -S sudo</code></td>
+</tr>
+<tr>
+<td><code>grub</code></td>
+<td>引导加载程序</td>
+<td><code>pacman -S grub</code></td>
+</tr>
+<tr>
+<td><code>efibootmgr</code></td>
+<td>EFI 引导管理</td>
+<td><code>pacman -S efibootmgr</code></td>
+</tr>
+</tbody></table>
+<h2 id="2-桌面环境"><a href="#2-桌面环境" class="headerlink" title="2. 桌面环境"></a>2. 桌面环境</h2><h2 id="2-桌面环境-1"><a href="#2-桌面环境-1" class="headerlink" title="2. 桌面环境"></a>2. 桌面环境</h2><h2 id="2-桌面环境-2"><a href="#2-桌面环境-2" class="headerlink" title="2. 桌面环境"></a>2. 桌面环境</h2><h2 id="2-桌面环境-3"><a href="#2-桌面环境-3" class="headerlink" title="2. 桌面环境"></a>2. 桌面环境</h2><h3 id="KDE-Plasma"><a href="#KDE-Plasma" class="headerlink" title="KDE Plasma"></a>KDE Plasma</h3><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>plasma-meta</code></td>
+<td>KDE Plasma 桌面元包</td>
+<td><code>pacman -S plasma-meta</code></td>
+</tr>
+<tr>
+<td><code>kde-system-meta</code></td>
+<td>KDE 系统应用元包</td>
+<td><code>pacman -S kde-system-meta</code></td>
+</tr>
+<tr>
+<td><code>ark</code></td>
+<td>归档管理器</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>gwenview</code></td>
+<td>图片查看器</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>konsole</code></td>
+<td>终端模拟器</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>krdc</code></td>
+<td>远程桌面客户端</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>spectacle</code></td>
+<td>截图工具</td>
+<td><code>pacman -S spectacle</code></td>
+</tr>
+<tr>
+<td><code>system-config-printer</code></td>
+<td>打印机配置工具</td>
+<td><code>pacman -S system-config-printer</code></td>
+</tr>
+<tr>
+<td><code>print-manager</code></td>
+<td>KDE 打印机管理</td>
+<td><code>pacman -S print-manager</code></td>
+</tr>
+<tr>
+<td><code>partitionmanager</code></td>
+<td>KDE 分区管理器</td>
+<td><code>pacman -S partitionmanager</code></td>
+</tr>
+<tr>
+<td><code>discover</code></td>
+<td>软件中心</td>
+<td><code>pacman -S discover</code></td>
+</tr>
+</tbody></table>
+<h3 id="Wayland-合成器"><a href="#Wayland-合成器" class="headerlink" title="Wayland 合成器"></a>Wayland 合成器</h3><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>niri</code></td>
+<td>滚动平铺 Wayland 合成器</td>
+<td><code>pacman -S niri</code></td>
+</tr>
+<tr>
+<td><code>xwayland-satellite</code></td>
+<td>独立 XWayland 实例</td>
+<td><code>pacman -S xwayland-satellite</code></td>
+</tr>
+<tr>
+<td><code>quickshell</code></td>
+<td>QML 桌面 shell 工具包</td>
+<td><code>pacman -S quickshell</code></td>
+</tr>
+<tr>
+<td><code>dms-shell</code></td>
+<td>基于 Quickshell 的 Material 3 桌面 shell</td>
+<td><code>pacman -S dms-shell</code></td>
+</tr>
+<tr>
+<td><code>qt6-wayland</code></td>
+<td>Qt6 Wayland 支持</td>
+<td><code>pacman -S qt6-wayland</code></td>
+</tr>
+</tbody></table>
+<h2 id="3-显示与图形驱动"><a href="#3-显示与图形驱动" class="headerlink" title="3. 显示与图形驱动"></a>3. 显示与图形驱动</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>mesa</code></td>
+<td>开源 OpenGL 驱动</td>
+<td><code>pacman -S mesa</code></td>
+</tr>
+<tr>
+<td><code>vulkan-radeon</code></td>
+<td>AMD 开源 Vulkan 驱动</td>
+<td><code>pacman -S vulkan-radeon</code></td>
+</tr>
+<tr>
+<td><code>amdgpu_top</code></td>
+<td>AMD GPU 使用率工具</td>
+<td><code>pacman -S amdgpu_top</code></td>
+</tr>
+<tr>
+<td><code>fastfetch</code></td>
+<td>系统信息工具</td>
+<td><code>pacman -S fastfetch</code></td>
+</tr>
+</tbody></table>
+<h2 id="4-输入法"><a href="#4-输入法" class="headerlink" title="4. 输入法"></a>4. 输入法</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fcitx5</code></td>
+<td>输入法框架</td>
+<td><code>pacman -S fcitx5</code></td>
+</tr>
+<tr>
+<td><code>fcitx5-chinese-addons</code></td>
+<td>中文输入法插件</td>
+<td><code>pacman -S fcitx5-chinese-addons</code></td>
+</tr>
+<tr>
+<td><code>fcitx5-configtool</code></td>
+<td>输入法配置工具</td>
+<td><code>pacman -S fcitx5-configtool</code></td>
+</tr>
+<tr>
+<td><code>fcitx5-theme-wechat</code></td>
+<td>WeChat 风格 fcitx5 主题</td>
+<td><code>(AUR)</code></td>
+</tr>
+</tbody></table>
+<h2 id="5-字体"><a href="#5-字体" class="headerlink" title="5. 字体"></a>5. 字体</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>noto-fonts-cjk</code></td>
+<td>Google Noto 中日韩字体</td>
+<td><code>pacman -S noto-fonts-cjk</code></td>
+</tr>
+<tr>
+<td><code>inter-font</code></td>
+<td>Inter 字体（UI 专用）</td>
+<td><code>pacman -S inter-font</code></td>
+</tr>
+<tr>
+<td><code>ttf-nerd-fonts-symbols-mono</code></td>
+<td>Nerd Fonts 图标字体（等宽）</td>
+<td><code>pacman -S ttf-nerd-fonts-symbols-mono</code></td>
+</tr>
+<tr>
+<td><code>otf-apple-pingfang</code></td>
+<td>Apple 苹方字体</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>ttf-apple-emoji</code></td>
+<td>Apple Color Emoji</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>ttf-twemoji</code></td>
+<td>Twitter Emoji 字体</td>
+<td><code>(AUR)</code></td>
+</tr>
+</tbody></table>
+<h2 id="6-网络与连接"><a href="#6-网络与连接" class="headerlink" title="6. 网络与连接"></a>6. 网络与连接</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>networkmanager</code></td>
+<td>网络连接管理器</td>
+<td><code>pacman -S networkmanager</code></td>
+</tr>
+<tr>
+<td><code>openssh</code></td>
+<td>SSH 远程登录</td>
+<td><code>pacman -S openssh</code></td>
+</tr>
+<tr>
+<td><code>ufw</code></td>
+<td>防火墙</td>
+<td><code>pacman -S ufw</code></td>
+</tr>
+<tr>
+<td><code>cups</code></td>
+<td>打印服务</td>
+<td><code>pacman -S cups</code></td>
+</tr>
+<tr>
+<td><code>cups-pk-helper</code></td>
+<td>CUPS PolicyKit 助手</td>
+<td><code>pacman -S cups-pk-helper</code></td>
+</tr>
+<tr>
+<td><code>hplip</code></td>
+<td>HP 打印机驱动</td>
+<td><code>pacman -S hplip</code></td>
+</tr>
+<tr>
+<td><code>hplip-plugin</code></td>
+<td>HP 打印机闭源插件</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>mentohust</code></td>
+<td>锐捷认证客户端</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>winbox</code></td>
+<td>MikroTik RouterOS 管理工具</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>ipcalc</code></td>
+<td>IP 地址计算工具</td>
+<td><code>pacman -S ipcalc</code></td>
+</tr>
+<tr>
+<td><code>minicom</code></td>
+<td>串口通信工具</td>
+<td><code>pacman -S minicom</code></td>
+</tr>
+</tbody></table>
+<h2 id="7-开发工具"><a href="#7-开发工具" class="headerlink" title="7. 开发工具"></a>7. 开发工具</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>git</code></td>
+<td>版本控制</td>
+<td><code>pacman -S git</code></td>
+</tr>
+<tr>
+<td><code>vim</code></td>
+<td>文本编辑器</td>
+<td><code>pacman -S vim</code></td>
+</tr>
+<tr>
+<td><code>cmake</code></td>
+<td>跨平台构建系统</td>
+<td><code>pacman -S cmake</code></td>
+</tr>
+<tr>
+<td><code>extra-cmake-modules</code></td>
+<td>CMake 额外模块</td>
+<td><code>pacman -S extra-cmake-modules</code></td>
+</tr>
+<tr>
+<td><code>visual-studio-code-bin</code></td>
+<td>VS Code 编辑器</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>ghostty</code></td>
+<td>现代化 GPU 加速终端</td>
+<td><code>pacman -S ghostty</code></td>
+</tr>
+<tr>
+<td><code>yazi</code></td>
+<td>Rust 编写的终端文件管理器</td>
+<td><code>pacman -S yazi</code></td>
+</tr>
+<tr>
+<td><code>zsh</code></td>
+<td>Z Shell</td>
+<td><code>pacman -S zsh</code></td>
+</tr>
+<tr>
+<td><code>zsh-completions</code></td>
+<td>Zsh 补全定义</td>
+<td><code>pacman -S zsh-completions</code></td>
+</tr>
+<tr>
+<td><code>screen</code></td>
+<td>终端复用器</td>
+<td><code>pacman -S screen</code></td>
+</tr>
+<tr>
+<td><code>thefuck</code></td>
+<td>命令纠错工具</td>
+<td><code>pacman -S thefuck</code></td>
+</tr>
+<tr>
+<td><code>man-db</code> <code>/ man-pages</code></td>
+<td>手册页</td>
+<td><code>pacman -S man-db man-pages</code></td>
+</tr>
+<tr>
+<td><code>btop</code></td>
+<td>系统资源监控（终端）</td>
+<td><code>pacman -S btop</code></td>
+</tr>
+<tr>
+<td><code>cava</code></td>
+<td>终端音频可视化</td>
+<td><code>pacman -S cava</code></td>
+</tr>
+<tr>
+<td><code>ripgrep</code> <code>/ ripgrep-all</code></td>
+<td>快速搜索工具</td>
+<td><code>pacman -S ripgrep ripgrep-all</code></td>
+</tr>
+</tbody></table>
+<h2 id="8-办公与笔记"><a href="#8-办公与笔记" class="headerlink" title="8. 办公与笔记"></a>8. 办公与笔记</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>wps-office-cn</code></td>
+<td>WPS Office 中文版</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>wps-office-mui-zh-cn</code></td>
+<td>WPS 中文界面包</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>typora</code></td>
+<td>Markdown 编辑器</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>siyuan-bin</code></td>
+<td>思源笔记</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>feishu-bin</code></td>
+<td>飞书（字节跳动）</td>
+<td><code>(AUR)</code></td>
+</tr>
+</tbody></table>
+<h2 id="9-浏览器与通讯"><a href="#9-浏览器与通讯" class="headerlink" title="9. 浏览器与通讯"></a>9. 浏览器与通讯</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>microsoft-edge-stable-bin</code></td>
+<td>Microsoft Edge 浏览器</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>wechat-appimage</code></td>
+<td>微信</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>linuxqq-appimage</code></td>
+<td>QQ</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>wemeet-bin</code></td>
+<td>腾讯会议</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>keyguard-bin</code></td>
+<td>Bitwarden 多客户端</td>
+<td><code>(AUR)</code></td>
+</tr>
+</tbody></table>
+<h2 id="10-影音娱乐"><a href="#10-影音娱乐" class="headerlink" title="10. 影音娱乐"></a>10. 影音娱乐</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>vlc</code></td>
+<td>多媒体播放器</td>
+<td><code>pacman -S vlc</code></td>
+</tr>
+<tr>
+<td><code>vlc-plugins-all</code></td>
+<td>VLC 全部插件</td>
+<td><code>pacman -S vlc-plugins-all</code></td>
+</tr>
+<tr>
+<td><code>splayer-bin</code></td>
+<td>跨平台音乐播放器（支持 Jellyfin&#x2F;Emby）</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>steam</code></td>
+<td>Steam 游戏平台</td>
+<td><code>pacman -S steam</code></td>
+</tr>
+<tr>
+<td><code>ffmpegthumbnailer</code></td>
+<td>视频缩略图生成器</td>
+<td><code>pacman -S ffmpegthumbnailer</code></td>
+</tr>
+</tbody></table>
+<h2 id="11-实用工具"><a href="#11-实用工具" class="headerlink" title="11. 实用工具"></a>11. 实用工具</h2><table>
+<thead>
+<tr>
+<th>包名</th>
+<th>说明</th>
+<th>安装方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>timeshift</code></td>
+<td>系统快照与恢复</td>
+<td><code>pacman -S timeshift</code></td>
+</tr>
+<tr>
+<td><code>syncthing-bin</code></td>
+<td>文件同步</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>cc-switch-bin</code></td>
+<td>Claude Code &#x2F; Codex CLI 助手工具</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>crossover</code></td>
+<td>在 Linux 运行 Windows 软件</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>cryptomator-bin</code></td>
+<td>云端文件透明加密</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>fsearch</code></td>
+<td>图形化文件搜索</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>windterm-bin</code></td>
+<td>SSH&#x2F;Telnet&#x2F;Serial 客户端</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>debtap</code></td>
+<td>.deb 转 Arch 包工具</td>
+<td><code>(AUR)</code></td>
+</tr>
+<tr>
+<td><code>7zip</code></td>
+<td>高压缩率归档工具</td>
+<td><code>pacman -S 7zip</code></td>
+</tr>
+<tr>
+<td><code>power-profiles-daemon</code></td>
+<td>电源配置服务</td>
+<td><code>pacman -S power-profiles-daemon</code></td>
+</tr>
+<tr>
+<td><code>nano</code></td>
+<td>简易文本编辑器</td>
+<td><code>pacman -S nano</code></td>
+</tr>
+<tr>
+<td><code>archlinux-xdg-menu</code></td>
+<td>XDG 菜单自动生成</td>
+<td><code>pacman -S archlinux-xdg-menu</code></td>
+</tr>
+<tr>
+<td><code>alsa-utils</code></td>
+<td>音频工具集</td>
+<td><code>pacman -S alsa-utils</code></td>
+</tr>
+<tr>
+<td><code>dgop</code></td>
+<td>系统监控 CLI + REST API</td>
+<td><code>pacman -S dgop</code></td>
+</tr>
+<tr>
+<td><code>matugen</code></td>
+<td>Material You 颜色生成工具</td>
+<td><code>pacman -S matugen</code></td>
+</tr>
+<tr>
+<td><code>yay-bin</code></td>
+<td>AUR 助手（用来装上面那些 AUR 包的）</td>
+<td><code>(AUR)</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="♻️-一键重装脚本"><a href="#♻️-一键重装脚本" class="headerlink" title="♻️ 一键重装脚本"></a>♻️ 一键重装脚本</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment"># 官方仓库包</span></span><br><span class="line">pacman -S --needed base base-devel linux linux-firmware sudo grub efibootmgr \</span><br><span class="line">  plasma-meta kde-system-meta ark gwenview konsole krdc spectacle \</span><br><span class="line">  system-config-printer print-manager partitionmanager discover \</span><br><span class="line">  niri xwayland-satellite quickshell dms-shell qt6-wayland \</span><br><span class="line">  mesa vulkan-radeon amdgpu_top fastfetch \</span><br><span class="line">  fcitx5 fcitx5-chinese-addons fcitx5-configtool \</span><br><span class="line">  noto-fonts-cjk inter-font ttf-nerd-fonts-symbols-mono \</span><br><span class="line">  networkmanager openssh ufw cups cups-pk-helper hplip \</span><br><span class="line">  git vim cmake extra-cmake-modules ghostty yazi zsh zsh-completions \</span><br><span class="line">  screen thefuck btop cava ripgrep ripgrep-all \</span><br><span class="line">  vlc vlc-plugins-all steam ffmpegthumbnailer \</span><br><span class="line">  timeshift 7zip power-profiles-daemon nano archlinux-xdg-menu \</span><br><span class="line">  alsa-utils dgop matugen ipcalc minicom</span><br><span class="line"></span><br><span class="line"><span class="comment"># AUR 包（需要先装 yay）</span></span><br><span class="line">yay -S --needed \</span><br><span class="line">  fcitx5-theme-wechat \</span><br><span class="line">  otf-apple-pingfang ttf-apple-emoji ttf-twemoji \</span><br><span class="line">  wps-office-cn wps-office-mui-zh-cn \</span><br><span class="line">  typora siyuan-bin feishu-bin \</span><br><span class="line">  microsoft-edge-stable-bin \</span><br><span class="line">  wechat-appimage linuxqq-appimage wemeet-bin \</span><br><span class="line">  keyguard-bin \</span><br><span class="line">  visual-studio-code-bin \</span><br><span class="line">  splayer-bin \</span><br><span class="line">  syncthing-bin cc-switch-bin crossover cryptomator-bin \</span><br><span class="line">  fsearch windterm-bin debtap hplip-plugin mentohust \</span><br><span class="line">  yay-bin</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>提示</strong>: 安装完成后别忘了启用服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">systemctl <span class="built_in">enable</span> --now NetworkManager</span><br><span class="line">systemctl <span class="built_in">enable</span> --now ufw</span><br><span class="line">systemctl <span class="built_in">enable</span> --now cups</span><br><span class="line">systemctl <span class="built_in">enable</span> --now sshd</span><br><span class="line">systemctl <span class="built_in">enable</span> --now power-profiles-daemon</span><br></pre></td></tr></table></figure>
+</blockquote>
+
+	  <div class="article-footer-copyright">
+
+    转载时请注明，本篇文章来自 qibohan.com.</a>
+</div>
+
+	</div>
+
+	
+	<span id="/2026/06/25/arch-install-packages/" class="leancloud-visitors view" data-flag-title="Arch Linux 已安装软件包清单">
+		<em class="post-meta-item-text"> Page View </em> <i class="leancloud-visitors-count"></i>
+	</span>
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a href="/2026/09/07/wemeet-screen-share-fix/" type="button" class="btn btn-default"><i
+                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/2025/09/15/centos7-lvm-expansion/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-06-25 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/categories/Linux/">Linux<span>5</span></a></li> <li><a href="/categories/Linux/系统运维/">系统运维<span>2</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/Arch-Linux/">Arch Linux<span>1</span></a></li> <li><a href="/tags/系统配置/">系统配置<span>1</span></a></li> <li><a href="/tags/软件包/">软件包<span>1</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 q1b0h4n's Blog
+  
+      powered by Hexo</a></a>  
+      <br><br>    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        <span>黑ICP备2022002096号-1</span>
+      </a>
+      <br><br><a href="https://beian.mps.gov.cn/#/query/webSearch?code=23011002000555" style="color:#ffffff;text-decoration:none;padding-left:18px; background:url(https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406081937437.png)no-repeat left center;background-size:17px 17px;" rel= "noreferrer" target="_blank"><span>黑公网安备23011002000555</span></a>
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"superSample":2,"width":180,"height":360,"position":"left","hOffset":20,"vOffset":0},"mobile":{"show":false,"scale":0.5},"react":{"opacityDefault":0.7},"log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+   </html>

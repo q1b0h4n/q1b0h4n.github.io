@@ -1,0 +1,415 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>vSphere Client 登录失败：WS1B OAuth2 Client 丢失排查与恢复（KB 311960 实战） | q1b0h4n&#39;s Blog</title>
+  <meta name="author" content="q1b0h4n">
+  
+  <meta name="description" content="某天早上打开 vSphere Client，登录页转两下就报错，连错误提示都很含糊。打开浏览器 F12 看到的是一个很”底层”的错误码：
+1oauth2.client.with.client.id.not.found
+
+顺着这条线挖下去，最后定位到是 vCenter 的 WS1B OAuth2 Client 记录丢失，用 Broadcom KB 311960 的步骤重建后恢复。
+这篇记录完整排查链路、取证命令和几个把我带偏的坑。"> 
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="vSphere Client 登录失败：WS1B OAuth2 Client 丢失排查与恢复（KB 311960 实战）"/>
+  <meta property="og:site_name" content="q1b0h4n&#39;s Blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">q1b0h4n&#39;s Blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class="fa fa-archive"></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class="fa fa-folder"></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class="fa fa-tags"></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class="fa fa-user"></i>About
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> vSphere Client 登录失败：WS1B OAuth2 Client 丢失排查与恢复（KB 311960 实战）</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  		
+
+	  <p>某天早上打开 vSphere Client，登录页转两下就报错，连错误提示都很含糊。打开浏览器 F12 看到的是一个很”底层”的错误码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">oauth2.client.with.client.id.not.found</span><br></pre></td></tr></table></figure>
+
+<p>顺着这条线挖下去，最后定位到是 <strong>vCenter 的 WS1B OAuth2 Client 记录丢失</strong>，用 Broadcom KB 311960 的步骤重建后恢复。</p>
+<p>这篇记录完整排查链路、取证命令和几个把我带偏的坑。</p>
+<span id="more"></span>
+
+<h2 id="一、先确认：不是密码错，也不是锁定"><a href="#一、先确认：不是密码错，也不是锁定" class="headerlink" title="一、先确认：不是密码错，也不是锁定"></a>一、先确认：不是密码错，也不是锁定</h2><p>登录失败最容易被误导的方向是”密码错了”或”账号被锁”。用 LDAP 直接绑一下，然后去 vmdird 日志里看<strong>具体是哪一种</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># LDAP bind 失败</span></span><br><span class="line">ldapsearch -h localhost -p 389 -D <span class="string">&quot;administrator@vsphere.local&quot;</span> -w <span class="string">&#x27;&lt;密码&gt;&#x27;</span> -b <span class="string">&quot;&quot;</span> -s base</span><br><span class="line"></span><br><span class="line"><span class="comment"># 日志</span></span><br><span class="line"><span class="built_in">tail</span> -f /var/log/vmware/vmdird/vmdird-syslog.log</span><br></pre></td></tr></table></figure>
+
+<p>日志里的关键区别：</p>
+<table>
+<thead>
+<tr>
+<th>日志事件</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>VdirPasswordFailEvent</code> + <code>LDAP_INVALID_CREDENTIALS(49)</code></td>
+<td><strong>密码错</strong></td>
+</tr>
+<tr>
+<td>lockout 相关事件</td>
+<td><strong>账号被锁定</strong></td>
+</tr>
+</tbody></table>
+<p>两者在客户端都表现为 “Invalid credentials”，<strong>必须靠日志区分</strong>。本次是前者——但我清楚地知道密码没错，所以问题不在这条路上。</p>
+<blockquote>
+<p>顺带一个教训：<strong>root 的 SSH 密码 ≠ SSO administrator 的密码</strong>。这是两套完全独立的体系，排查时不要混用。</p>
+</blockquote>
+<h2 id="二、复现：直接打-authorize-端点"><a href="#二、复现：直接打-authorize-端点" class="headerlink" title="二、复现：直接打 authorize 端点"></a>二、复现：直接打 authorize 端点</h2><p>vSphere Client 的登录本质是一次标准 OAuth2 authorization code 流程。直接打那个端点，就能看到裸的、不带前端美化的错误：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -sk -H <span class="string">&#x27;Host: vcenter.example.com&#x27;</span> -H <span class="string">&#x27;User-Agent: Mozilla/5.0&#x27;</span> \</span><br><span class="line">  <span class="string">&quot;https://localhost/acs/t/CUSTOMER/authorize?client_id=&lt;CLIENT_ID&gt;&amp;redirect_uri=https://vcenter.example.com/ui/login/oauth2/authcode&amp;response_type=code&amp;state=test&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>返回：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HTTP 400</span><br><span class="line"><span class="tag">&lt;<span class="name">p</span> <span class="attr">id</span>=<span class="string">&quot;error_code&quot;</span>&gt;</span>oauth2.client.with.client.id.not.found<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span> <span class="attr">id</span>=<span class="string">&quot;error_description&quot;</span>&gt;</span>OAuth2 Client with client id &#123;0&#125; does not exist<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>注意这里有个大坑</strong>：请求必须带正确的 <code>Host</code> 头。vCenter 前面是 envoy 反代，Host 不对的话 Header 校验失败，envoy 直接返回 <strong>444 且无响应体</strong>——看起来像”服务挂了”，其实只是 Host 写错了。这个假象很容易让人往”vCenter 服务异常”的错误方向跑。</p>
+<h2 id="三、日志证据"><a href="#三、日志证据" class="headerlink" title="三、日志证据"></a>三、日志证据</h2><table>
+<thead>
+<tr>
+<th>日志路径</th>
+<th>关键内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/var/log/vmware/vc-ws1a-broker/accesscontrol-service.log</code></td>
+<td><code>OAuth2ClientNotFoundException: oauth2.client.with.client.id.not.found</code><br><code>[getValidatedClient] Client not found</code></td>
+</tr>
+<tr>
+<td><code>/var/log/vmware/envoy/envoy-access-*.log.gz</code></td>
+<td>登录流量的真实请求：<code>GET /acs/t/CUSTOMER/authorize?client_id=...&amp;redirect_uri=.../ui/login/oauth2/authcode</code></td>
+</tr>
+<tr>
+<td><code>/var/log/vmware/vmdird/vmdird-syslog.log</code></td>
+<td><code>VdirPasswordFailEvent</code>（用来排除密码问题）</td>
+</tr>
+</tbody></table>
+<h2 id="四、去数据库里确认”客户端真的没了”"><a href="#四、去数据库里确认”客户端真的没了”" class="headerlink" title="四、去数据库里确认”客户端真的没了”"></a>四、去数据库里确认”客户端真的没了”</h2><p>vCenter 的 OAuth2 client 存在 VCDB 的 <code>vidm_schema.ACS_OAuth2Client</code> 表里。Appliance 自带的 postgres 可以免密登录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">psql -h localhost -U postgres -d VCDB</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意：表名和列名全是驼峰，查询时必须加双引号</strong>，否则会报列不存在。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 列出所有 OAuth2 client</span></span><br><span class="line"><span class="keyword">select</span> &quot;clientId&quot;,&quot;tenantId&quot;,&quot;displayName&quot;,&quot;isInternal&quot;,</span><br><span class="line">       length(&quot;redirectUri&quot;) <span class="keyword">as</span> ru_len, &quot;createdDate&quot;</span><br><span class="line"><span class="keyword">from</span> vidm_schema.&quot;ACS_OAuth2Client&quot; <span class="keyword">order</span> <span class="keyword">by</span> &quot;createdDate&quot;;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 目标 client 是否存在</span></span><br><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> vidm_schema.&quot;ACS_OAuth2Client&quot;</span><br><span class="line"><span class="keyword">where</span> &quot;clientId&quot; <span class="operator">=</span> <span class="string">&#x27;&lt;CLIENT_ID&gt;&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>本环境查出来的结果很说明问题：表里<strong>只有 8 个 2022 年创建的内部 client</strong>（crypto &#x2F; accesscontrol &#x2F; token &#x2F; operator &#x2F; usergroup &#x2F; federation &#x2F; tenant_admin × HWS &#x2F; CUSTOMER &#x2F; OPERATOR），而 vCenter 登录实际使用的那个 client —— <strong>一条记录都没有</strong>。</p>
+<p>结论明确：<strong>不是配置写错，是记录整个丢失了。</strong></p>
+<p><code>ACS_OAuth2Client</code> 的关键列：</p>
+<ul>
+<li><code>clientId</code> &#x2F; <code>tenantId</code> &#x2F; <code>secret</code>（varchar 4000）</li>
+<li><code>grantTypes</code> &#x2F; <code>scopes</code></li>
+<li><code>redirectUri</code>（<strong>varchar 2048，正好对应 KB 里说的长度上限</strong>）</li>
+<li><code>postLogoutRedirectUri</code>（2048）</li>
+<li><code>isOIDCClient</code></li>
+</ul>
+<h2 id="五、好消息：原始凭据还在-VMDir-里"><a href="#五、好消息：原始凭据还在-VMDir-里" class="headerlink" title="五、好消息：原始凭据还在 VMDir 里"></a>五、好消息：原始凭据还在 VMDir 里</h2><p>client 记录没了，但 provider 的配置保存在 VMDir 的 LMDB 数据库里：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/storage/db/vmware-vmdir/data.mdb</span><br><span class="line"></span><br><span class="line">DN: cn=customer,cn=VCIdentityProviders,cn=vsphere.local,</span><br><span class="line">    cn=Tenants,cn=IdentityManager,cn=Services,dc=vsphere,dc=local</span><br></pre></td></tr></table></figure>
+
+<p>正常应该用 LDAP 查。但<strong>当没有可用凭据、LDAP 查不到时</strong>，可以直接从 LMDB 文件里按字符串提取：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line">data = <span class="built_in">open</span>(<span class="string">&#x27;/storage/db/vmware-vmdir/data.mdb&#x27;</span>, <span class="string">&#x27;rb&#x27;</span>).read()</span><br><span class="line">i = data.find(<span class="string">b&#x27;&lt;CLIENT_ID&gt;&#x27;</span>)</span><br><span class="line"><span class="keyword">for</span> m <span class="keyword">in</span> re.finditer(<span class="string">rb&#x27;[\x20-\x7e]&#123;4,&#125;&#x27;</span>, data[<span class="built_in">max</span>(<span class="number">0</span>, i - <span class="number">1500</span>):i + <span class="number">1500</span>]):</span><br><span class="line">    <span class="built_in">print</span>(m.group().decode())</span><br></pre></td></tr></table></figure>
+
+<p>提取出来的字段（顺序即文件中的顺序）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">auth.example.cn           # 外部 IdP 主机</span><br><span class="line">&lt;IDP_NAME&gt;                # IdP 名称</span><br><span class="line">vmwSTSExternalIdp         # objectClass</span><br><span class="line">customer                  # tenant</span><br><span class="line">&lt;CLIENT_ID&gt;               # client_id</span><br><span class="line">&lt;CLIENT_SECRET&gt;           # client_secret（32 位字母数字）</span><br><span class="line">https://vcenter.example.com/acs/t/CUSTOMER/</span><br><span class="line">CLIENT_SECRET_BASIC       # token_endpoint_auth_method</span><br></pre></td></tr></table></figure>
+
+<p>有了 client_id 和 client_secret，就能按 KB 重建了。</p>
+<h2 id="六、恢复步骤（KB-311960）"><a href="#六、恢复步骤（KB-311960）" class="headerlink" title="六、恢复步骤（KB 311960）"></a>六、恢复步骤（KB 311960）</h2><p><strong>前置条件：需要一个能正常登录的 <code>vsphere.local</code> 管理员账号。</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">SSO=<span class="string">&#x27;administrator@vsphere.local&#x27;</span></span><br><span class="line">PW=<span class="string">&#x27;&lt;SSO_PASSWORD&gt;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1) 获取 vCenter session</span></span><br><span class="line">curl -sk -X POST -u <span class="string">&quot;<span class="variable">$SSO</span>:<span class="variable">$PW</span>&quot;</span> \</span><br><span class="line">  <span class="string">&#x27;http://localhost/rest/com/vmware/cis/session&#x27;</span> \</span><br><span class="line">  -w <span class="string">&#x27;\n[HTTP %&#123;http_code&#125;]\n&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2) 取 provider 的 client_id / client_secret（权威来源，优先于 VMDir 提取值）</span></span><br><span class="line">curl -sk -H <span class="string">&quot;vmware-api-session-id: <span class="variable">$TOK</span>&quot;</span> \</span><br><span class="line">  <span class="string">&#x27;http://localhost/api/vcenter/identity/providers/customer&#x27;</span> \</span><br><span class="line">  | python3 -m json.tool | grep -iE <span class="string">&#x27;client_id|client_secret&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3) 取 broker 的 admin-client token</span></span><br><span class="line">curl -sk -H <span class="string">&quot;vmware-api-session-id: <span class="variable">$TOK</span>&quot;</span> -H <span class="string">&#x27;Accept: application/json&#x27;</span> \</span><br><span class="line">  <span class="string">&#x27;http://localhost/api/vcenter/identity/broker/tenants/customer/admin-client&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4) 重建 client</span></span><br><span class="line">curl -sk -X POST --cacert /var/lib/vmware/vmca/root.cer \</span><br><span class="line">  <span class="string">&quot;https://<span class="subst">$(hostname)</span>/acs/t/customer/broker/oauth2-clients&quot;</span> \</span><br><span class="line">  -H <span class="string">&quot;Authorization: HZN <span class="variable">$ADM</span>&quot;</span> \</span><br><span class="line">  -H <span class="string">&#x27;Content-Type: application/vnd.vmware.horizon.manager.accesscontrol.broker.oauth2client.with.rule.sets+json&#x27;</span> \</span><br><span class="line">  --data <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">    &quot;client_id&quot;: &quot;&lt;CLIENT_ID&gt;&quot;,</span></span><br><span class="line"><span class="string">    &quot;secret&quot;: &quot;&lt;CLIENT_SECRET&gt;&quot;,</span></span><br><span class="line"><span class="string">    &quot;scope&quot;: [&quot;openid&quot;, &quot;profile&quot;, &quot;user&quot;, &quot;group&quot;],</span></span><br><span class="line"><span class="string">    &quot;access_token_ttl&quot;: 10080,</span></span><br><span class="line"><span class="string">    &quot;refresh_token_ttl&quot;: 525600,</span></span><br><span class="line"><span class="string">    &quot;refresh_token_idle_ttl&quot;: 525600,</span></span><br><span class="line"><span class="string">    &quot;grant_types&quot;: [&quot;refresh_token&quot;, &quot;client_credentials&quot;, &quot;password&quot;, &quot;authorization_code&quot;],</span></span><br><span class="line"><span class="string">    &quot;redirect_uris&quot;: [&quot;https://vcenter.example.com/ui/login/oauth2/authcode&quot;],</span></span><br><span class="line"><span class="string">    &quot;post_logout_redirect_uris&quot;: [&quot;https://vcenter.example.com/ui/login?logout&quot;]</span></span><br><span class="line"><span class="string">  &#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>验收</strong>：重新执行第二步那个 authorize 请求，应从 <code>HTTP 400 + client.id.not.found</code> 变成 <strong>302</strong>（跳转到外部 IdP 登录页）。</p>
+<p>实际结果：</p>
+<ul>
+<li>POST 重建 → <strong>HTTP 201</strong>，返回新记录 uuid</li>
+<li>DB 检查 → <code>ACS_OAuth2Client</code> 出现该行（tenant&#x3D;CUSTOMER，<code>isInternal=false</code>，redirectUri 正确）</li>
+<li><code>POST /acs/t/customer/token</code>（Basic + client_credentials）→ <strong>200 + access_token</strong>（说明 secret 正确）</li>
+<li>authorize 端点 → <strong>从 400 变 302</strong>（location 指向 <code>/federation/t/CUSTOMER/auth/login?...</code>）</li>
+</ul>
+<p><strong>KB 文档本身有个笔误</strong>：文档示例里 <code>post_logout_redirect_uris</code> 最后一条写成了 <code>.../ui/login/oauth2/authcode</code>，与前面几条的 <code>.../ui/login?logout</code> 格式不一致，按 <code>?logout</code> 写。</p>
+<p>顺带验证了一下 KB 提到的”ELM 节点多 + 主机名长导致 redirectUri 超过 2048”这个成因是否成立：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">python /usr/lib/vmware-lookupsvc/tools/lstool.py list \</span><br><span class="line">  --url $(/usr/lib/vmware-vmafd/bin/vmafd-cli get-ls-location --server-name localhost) \</span><br><span class="line">  --product <span class="string">&#x27;com.vmware.trustmanagement&#x27;</span> --<span class="built_in">type</span> <span class="string">&#x27;trustmanagement&#x27;</span> \</span><br><span class="line">  --ep-proto <span class="string">&#x27;vapi.json.https&#x27;</span> --ep-type <span class="string">&#x27;com.vmware.trustmanagement.vapi&#x27;</span> --as-spec 2&gt;/dev/null \</span><br><span class="line">  | grep <span class="string">&#x27;endpoint[0-9]*\.url&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>只有一个节点 → <strong>本环境的成因不是”超长”，就是记录单纯丢失</strong>。</p>
+<h2 id="七、踩过的坑（重点）"><a href="#七、踩过的坑（重点）" class="headerlink" title="七、踩过的坑（重点）"></a>七、踩过的坑（重点）</h2><h3 id="1-差点改错关联表——动手前先反查-uuid"><a href="#1-差点改错关联表——动手前先反查-uuid" class="headerlink" title="1. 差点改错关联表——动手前先反查 uuid"></a>1. 差点改错关联表——动手前先反查 uuid</h3><p><code>ACS_RuleSetAssociation</code> 表里有两行 <code>subjectType=client</code> 的记录。我一度认为它们是”被删 client 留下的悬空引用”，准备 UPDATE 成新 client 的 uuid。</p>
+<p><strong>结果发现搞错了</strong>：那个 uuid 其实是 <code>tenant_admin_client</code>（CUSTOMER）的 uuid，对应 “Super Admin” 规则集，是<strong>正常的原有配置</strong>。</p>
+<p>好在动手前有备份，发现后逐行还原并比对通过。</p>
+<blockquote>
+<p><strong>教训：修改任何关联关系之前，先把 uuid 反查清楚它属于哪条记录。</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> &quot;clientId&quot;,&quot;tenantId&quot;,&quot;displayName&quot; <span class="keyword">from</span> vidm_schema.&quot;ACS_OAuth2Client&quot;;</span><br></pre></td></tr></table></figure>
+<p>全表扫一遍，花不了 10 秒。</p>
+</blockquote>
+<h3 id="2-改表前必须备份整表"><a href="#2-改表前必须备份整表" class="headerlink" title="2. 改表前必须备份整表"></a>2. 改表前必须备份整表</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">copy</span> (<span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> vidm_schema.&quot;ACS_OAuth2Client&quot;)</span><br><span class="line">  <span class="keyword">to</span> <span class="string">&#x27;/tmp/oauth2client_backup.csv&#x27;</span> <span class="keyword">with</span> csv header;</span><br></pre></td></tr></table></figure>
+
+<p>这次能顺利完成回滚验证，全靠这份备份。</p>
+<h3 id="3-别用响应长度判断-session-是否成功"><a href="#3-别用响应长度判断-session-是否成功" class="headerlink" title="3. 别用响应长度判断 session 是否成功"></a>3. 别用响应长度判断 session 是否成功</h3><p>401 的错误 JSON 也有 400+ 字符，肉眼扫一眼很容易误判成”拿到 token 了”。</p>
+<p>**必须看 <code>[HTTP %&#123;http_code&#125;]</code>**，或者判断响应体里是否包含 <code>&quot;value&quot;:&quot;</code>。</p>
+<h3 id="4-psql-f-不能和-c-混用"><a href="#4-psql-f-不能和-c-混用" class="headerlink" title="4. psql -f 不能和 -c 混用"></a>4. <code>psql -f</code> 不能和 <code>-c</code> 混用</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">psql -tAc -f file   <span class="comment"># ❌ 会把 -f 当成 -c 的参数值</span></span><br><span class="line">psql -tA -f file    <span class="comment"># ✅</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-想查”某个-uuid-被哪些表引用”？别逐表二分"><a href="#5-想查”某个-uuid-被哪些表引用”？别逐表二分" class="headerlink" title="5. 想查”某个 uuid 被哪些表引用”？别逐表二分"></a>5. 想查”某个 uuid 被哪些表引用”？别逐表二分</h3><p>用 <code>information_schema</code> 生成 union all 查询一次性扫完，效率高得多：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> string_agg(</span><br><span class="line">  format(<span class="string">&#x27;select %L as loc where exists (select 1 from %I.%I where %I::text = %L)&#x27;</span>,</span><br><span class="line">         ...), <span class="string">&#x27; union all &#x27;</span>)</span><br><span class="line"><span class="keyword">from</span> information_schema.columns <span class="keyword">where</span> ...;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-内部服务端口清单（别指望绕过鉴权）"><a href="#6-内部服务端口清单（别指望绕过鉴权）" class="headerlink" title="6. 内部服务端口清单（别指望绕过鉴权）"></a>6. 内部服务端口清单（别指望绕过鉴权）</h3><p><code>accesscontrol=10114</code>、<code>token=10113</code>、<code>usergroup=10118</code>、<code>federation=10115</code> —— 都是内部 HTTP，直接访未授权请求只会返回 444&#x2F;401。</p>
+<h3 id="7-etc-krb5-keytab-可能是-0-字节"><a href="#7-etc-krb5-keytab-可能是-0-字节" class="headerlink" title="7. /etc/krb5.keytab 可能是 0 字节"></a>7. <code>/etc/krb5.keytab</code> 可能是 0 字节</h3><p>没有 default realm 的情况下，GSSAPI 机器账号绑定完全不可用，<strong>别指望走这条路读 VMDir</strong>。</p>
+<h2 id="八、遗留问题"><a href="#八、遗留问题" class="headerlink" title="八、遗留问题"></a>八、遗留问题</h2><p>client 修好后，第二段链路继续跟下去会撞到另一个错：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Workspace ONE Access encountered an error. Message: Invalid access policy</span><br><span class="line">RuleAdviceEvaluator   - No advice configured for the rule, request denied</span><br><span class="line">RulesetResolver       - Failed to resolve ruleset with tenantId CUSTOMER, conditions ...</span><br><span class="line">LoginExceptionHandler - InvalidRuleConfigurationException access.policy.is.invalid</span><br></pre></td></tr></table></figure>
+
+<p>排查记录（留档给接手的人）：</p>
+<ul>
+<li>换完整 Chrome UA、带 cookie jar 跟重定向、直连该端点 —— <strong>都是 500</strong>，不是单纯的 UA 问题</li>
+<li><code>ACS_RuleSet</code> 里 CUSTOMER 与 OPERATOR 的 <code>default_access_policy_set</code>（tag&#x3D;APP_ACCESS）规则体<strong>完全一致</strong>，没法通过”对比租户”判断哪边缺配置</li>
+<li>日志里有<strong>真实浏览器请求</strong>（9&#x2F;14 16:04、16:06）也撞到同一个 <code>Deny access based on ruleset resolution result</code> → <strong>这个策略拒绝很可能早于本次 client 丢失就存在，属独立问题</strong></li>
+<li>vCenter 在 9&#x2F;14 23:21 &#x2F; 23:26 &#x2F; 00:00 &#x2F; 00:14 被<strong>连续重启 4 次</strong>，说明当晚已经有人在排查；日志只保留到 9&#x2F;14 15:32 之后，没法对比更早的”登录成功”记录</li>
+<li><strong>下一步方向</strong>：确认 client 是否应绑定 app access policy（<code>rule_set_names</code>）。本次创建时该字段为空数组（KB 的 content-type 名叫 <code>...with.rule.sets+json</code>，暗示本应带规则集），但该版本上 API 的 GET&#x2F;PUT 走 <code>/acs/oauth2clients/&lt;uuid&gt;</code> 返回 404、PUT 返回 405，没能通过 API 补写</li>
+</ul>
+<h2 id="九、小结"><a href="#九、小结" class="headerlink" title="九、小结"></a>九、小结</h2><ol>
+<li><strong>症状含糊时，直接打底层端点</strong>。vSphere Client 前端只给一句”登录失败”，而 <code>curl</code> 打 authorize 端点能拿到精确到 client_id 的裸错误。</li>
+<li><strong>注意 Host 头</strong>。envoy 在 Host 不对时返回 444 无响应体，极易误判成”服务挂了”。</li>
+<li>**先确认”是记录没了”还是”是配置错了”**。查 DB 全表，比对着文档瞎猜快得多。</li>
+<li><strong>凭据可能还在别处</strong>。client 记录没了，但 VMDir 的 LMDB 里还躺着 client_id &#x2F; secret。</li>
+<li><strong>动关联表之前，先反查 uuid 属于谁；动表之前，先备份整表。</strong> 这两条让我避免了一次真实的误操作。</li>
+</ol>
+
+	  <div class="article-footer-copyright">
+
+    转载时请注明，本篇文章来自 qibohan.com.</a>
+</div>
+
+	</div>
+
+	
+	<span id="/2026/09/15/vsphere-client-login-failed-ws1b-oauth2-client/" class="leancloud-visitors view" data-flag-title="vSphere Client 登录失败：WS1B OAuth2 Client 丢失排查与恢复（KB 311960 实战）">
+		<em class="post-meta-item-text"> Page View </em> <i class="leancloud-visitors-count"></i>
+	</span>
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a href="/2026/09/15/vsan-virtual-objects-iscsi-orphan-target/" type="button" class="btn btn-default"><i
+                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/2026/09/09/lang-fix-fedora/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-09-15 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/categories/运维/">运维<span>2</span></a></li> <li><a href="/categories/运维/VMware/">VMware<span>2</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/故障排查/">故障排查<span>2</span></a></li> <li><a href="/tags/vCenter/">vCenter<span>1</span></a></li> <li><a href="/tags/vSphere/">vSphere<span>1</span></a></li> <li><a href="/tags/OAuth2/">OAuth2<span>1</span></a></li> <li><a href="/tags/SSO/">SSO<span>1</span></a></li> <li><a href="/tags/KB311960/">KB311960<span>1</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 q1b0h4n's Blog
+  
+      powered by Hexo</a></a>  
+      <br><br>    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        <span>黑ICP备2022002096号-1</span>
+      </a>
+      <br><br><a href="https://beian.mps.gov.cn/#/query/webSearch?code=23011002000555" style="color:#ffffff;text-decoration:none;padding-left:18px; background:url(https://picgo-1251187633.cos.ap-beijing.myqcloud.com//typora/202406081937437.png)no-repeat left center;background-size:17px 17px;" rel= "noreferrer" target="_blank"><span>黑公网安备23011002000555</span></a>
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginModelPath":"assets/","model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"superSample":2,"width":180,"height":360,"position":"left","hOffset":20,"vOffset":0},"mobile":{"show":false,"scale":0.5},"react":{"opacityDefault":0.7},"log":false,"pluginJsPath":"lib/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+   </html>
